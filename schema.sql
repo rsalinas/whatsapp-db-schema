@@ -236,7 +236,7 @@ CREATE TABLE frequent_forward_chat(chat_row_id INTEGER PRIMARY KEY,num_forward I
 CREATE TABLE status_info_ranking_signals(chat_jid TEXT PRIMARY KEY NOT NULL,first_status_timestamp INTEGER NOT NULL DEFAULT 0,last_expired_status_timestamp INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE status_quoted_message(message_row_id INTEGER PRIMARY KEY,description_text TEXT NOT NULL,thumbnail BLOB,type INTEGER,original_status_key_id TEXT,original_status_is_from_me INTEGER,original_status_chat_id TEXT,original_status_sender_id TEXT,add_on_key_id TEXT,add_on_is_from_me INTEGER,add_on_chat_id TEXT,add_on_sender_id TEXT);
 CREATE TABLE message_add_on_status_sticker_interaction(message_add_on_row_id INTEGER PRIMARY KEY,sticker_key TEXT,type INTEGER);
-CREATE TABLE ai_thread_info(thread_id_row_id INTEGER PRIMARY KEY,title TEXT,creation_ts INTEGER NOT NULL,variant INTEGER NOT NULL DEFAULT 1,last_thread_messages_row_id INTEGER,last_message_timestamp INTEGER, title_source INTEGER, unseen_message_count INTEGER);
+CREATE TABLE ai_thread_info(thread_id_row_id INTEGER PRIMARY KEY,title TEXT,creation_ts INTEGER NOT NULL,variant INTEGER NOT NULL DEFAULT 1,last_thread_messages_row_id INTEGER,last_message_timestamp INTEGER, title_source INTEGER, unseen_message_count INTEGER, origin_chat_row_id INTEGER);
 CREATE TABLE message_inline_video_metadata(message_row_id INTEGER PRIMARY KEY NOT NULL,video_content_url TEXT NOT NULL,is_muted INTEGER NOT NULL DEFAULT 0, caption TEXT);
 CREATE TABLE payment_extended_metadata(message_row_id INTEGER PRIMARY KEY,platform TEXT,type INTEGER,message_params_json TEXT);
 CREATE TABLE bot_message_sharing_info(message_row_id INTEGER PRIMARY KEY,message_id TEXT,bot_entry_point_origin INTEGER,forward_score INTEGER NOT NULL DEFAULT 0);
@@ -246,7 +246,7 @@ CREATE TABLE message_newsletter_follower_invite(message_row_id INTEGER PRIMARY K
 CREATE TABLE dynamic_audience_sources(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,dynamic_audience_type INTEGER NOT NULL,dynamic_audience_id INTEGER NOT NULL);
 CREATE TABLE broadcast_chat_details(chat_row_id INTEGER PRIMARY KEY NOT NULL,use_case INTEGER NOT NULL);
 CREATE TABLE message_system_update_audience_linking(message_row_id INTEGER PRIMARY KEY,lists_to_remove_count INTEGER,lists_to_sync_count INTEGER);
-CREATE TABLE message_quarantine(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER,timestamp INTEGER NOT NULL,original_protobuf BLOB NOT NULL,serialized_stanza BLOB);
+CREATE TABLE message_quarantine(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER,timestamp INTEGER NOT NULL,original_protobuf BLOB NOT NULL,serialized_stanza BLOB, protobuf_type INTEGER);
 CREATE TABLE message_structure_analysis_result(message_row_id INTEGER PRIMARY KEY NOT NULL,message_field_json_array TEXT,submessage_field_json_array TEXT,button_value_json_array TEXT);
 CREATE TABLE recently_selected_search_table(recent_chat_row_id INTEGER PRIMARY KEY,search_timestamp INTEGER);
 CREATE VIEW available_message_view AS
