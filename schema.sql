@@ -46,7 +46,7 @@ CREATE TABLE message_quoted_product(message_row_id INTEGER PRIMARY KEY,business_
 CREATE TABLE messages_hydrated_four_row_template(message_row_id INTEGER PRIMARY KEY,message_template_id TEXT);
 CREATE TABLE message_text(message_row_id INTEGER PRIMARY KEY,description TEXT,page_title TEXT,url TEXT,font_style INTEGER,text_color INTEGER,background_color INTEGER,preview_type INTEGER,invite_link_group_type INTEGER NOT NULL DEFAULT 0,counter_abuse_token TEXT, fb_experiment_id INTEGER, social_media_post_type INTEGER, link_media_duration_seconds INTEGER, link_end_index INTEGER);
 CREATE TABLE priority_inbox(_id INTEGER PRIMARY KEY AUTOINCREMENT,priority_score DOUBLE NOT NULL,version INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,is_priority BOOLEAN,label_removed BOOLEAN,time_created INTEGER,deep_conversion_rate BOOLEAN);
-CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER);
+CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT);
 CREATE TABLE quick_reply_attachments(_id INTEGER PRIMARY KEY AUTOINCREMENT,quick_reply_id TEXT NOT NULL,uri TEXT NOT NULL,caption TEXT,media_type INTEGER);
 CREATE TABLE message_details(message_row_id INTEGER PRIMARY KEY,author_device_jid INTEGER);
 CREATE TABLE message_quoted_payment_invite(message_row_id INTEGER PRIMARY KEY,service INTEGER,expiration_timestamp INTEGER);
@@ -128,7 +128,7 @@ CREATE TABLE backup_changes(_id INTEGER PRIMARY KEY AUTOINCREMENT,operation TEXT
 CREATE TABLE message_rating(message_row_id INTEGER PRIMARY KEY,rating INTEGER NOT NULL);
 CREATE TABLE message_add_on_event_response(message_add_on_row_id INTEGER PRIMARY KEY,response INTEGER DEFAULT 0,sender_timestamp INTEGER NOT NULL, extra_guest_count INTEGER);
 CREATE TABLE message_payment(message_row_id INTEGER PRIMARY KEY,sender_jid_row_id INTEGER,receiver_jid_row_id INTEGER,amount_with_symbol TEXT,remote_resource TEXT,remote_message_sender_jid_row_id INTEGER,remote_message_from_me INTEGER,remote_message_key TEXT);
-CREATE TABLE message_event(message_row_id INTEGER PRIMARY KEY,is_canceled INTEGER DEFAULT 0,name TEXT NOT NULL,description TEXT,location_latitude REAL,location_longitude REAL,location_name TEXT,location_address TEXT,join_link TEXT,start_time DATETIME NOT NULL,chat_row_id INTEGER,event_state INTEGER NOT NULL DEFAULT 0, end_time DATETIME, allow_extra_guests INTEGER, is_schedule_call INTEGER, has_reminder INTEGER, reminder_offset_sec INTEGER);
+CREATE TABLE message_event(message_row_id INTEGER PRIMARY KEY,is_canceled INTEGER DEFAULT 0,name TEXT NOT NULL,description TEXT,location_latitude REAL,location_longitude REAL,location_name TEXT,location_address TEXT,join_link TEXT,start_time DATETIME NOT NULL,chat_row_id INTEGER,event_state INTEGER NOT NULL DEFAULT 0, end_time DATETIME, allow_extra_guests INTEGER, is_schedule_call INTEGER, has_reminder INTEGER, reminder_offset_sec INTEGER, show_upcoming_banner INTEGER);
 CREATE TABLE message_add_on_poll_vote_selected_option(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_add_on_row_id INTEGER,message_poll_option_id INTEGER);
 CREATE TABLE message_ephemeral_setting(message_row_id INTEGER PRIMARY KEY,setting_duration INTEGER,setting_reason INTEGER,user_jid_row_id_csv TEXT,ephemeral_trigger INTEGER,ephemeral_initiated_by_me INTEGER);
 CREATE TABLE message_system_group(message_row_id INTEGER PRIMARY KEY,is_me_joined INTEGER);
@@ -249,6 +249,8 @@ CREATE TABLE message_system_update_audience_linking(message_row_id INTEGER PRIMA
 CREATE TABLE message_quarantine(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER,timestamp INTEGER NOT NULL,original_protobuf BLOB NOT NULL,serialized_stanza BLOB, protobuf_type INTEGER);
 CREATE TABLE message_structure_analysis_result(message_row_id INTEGER PRIMARY KEY NOT NULL,message_field_json_array TEXT,submessage_field_json_array TEXT,button_value_json_array TEXT);
 CREATE TABLE recently_selected_search_table(recent_chat_row_id INTEGER PRIMARY KEY,search_timestamp INTEGER);
+CREATE TABLE message_biz_context_info(message_row_id INTEGER PRIMARY KEY,weblink_render_config INTEGER);
+CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,chat_request_type TEXT NOT NULL);
 CREATE VIEW available_message_view AS
             SELECT
               
