@@ -199,14 +199,177 @@ CREATE TABLE message_media_interactive_annotation_embedded_music(message_media_i
 CREATE TABLE message_span_indices(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,start_index INTEGER,end_index INTEGER,span_type INTEGER);
 CREATE TABLE mms_metadata(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,direct_path TEXT,media_key BLOB,media_key_timestamp INTEGER,enc_thumb_hash TEXT,thumb_hash TEXT,thumb_width INTEGER,thumb_height INTEGER,transferred INTEGER,micro_thumbnail BLOB,insert_timestamp INTEGER,handle TEXT,type INTEGER);
 CREATE TABLE bot_memory_metadata(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,memory_annotated_user_message_key_id TEXT NOT NULL,memory TEXT,memory_id TEXT NOT NULL,added INTEGER NOT NULL, bot_jid_row_id INTEGER);
+CREATE INDEX message_system_chat_participant_index ON message_system_chat_participant (message_row_id);
+CREATE UNIQUE INDEX message_media_interactive_annotation_vertex_index ON message_media_interactive_annotation_vertex (message_media_interactive_annotation_row_id, sort_order);
+CREATE INDEX message_span_indices_message_and_span_index ON 
+                 message_span_indices (message_row_id, span_type);
+CREATE INDEX message_span_indices_message_and_start_index ON 
+                message_span_indices (message_row_id, start_index);
+CREATE INDEX message_span_indices_message_and_start_and_span_type_index ON 
+                message_span_indices (message_row_id, start_index, span_type);
+CREATE INDEX bot_memory_metadata_message_row_id_index ON bot_memory_metadata (message_row_id);
+CREATE INDEX bot_memory_metadata_memory_annotated_user_message_key_id_index ON bot_memory_metadata (memory_annotated_user_message_key_id);
+CREATE UNIQUE INDEX receipt_orphaned_index ON receipt_orphaned (chat_row_id, from_me, key_id, receipt_device_jid_row_id, receipt_recipient_jid_row_id, status);
+CREATE INDEX backup_changes_operation_index 
+  ON backup_changes (operation, table_name, table_row_id);
+CREATE UNIQUE INDEX call_log_key_index ON call_log (jid_row_id, from_me, call_id, transaction_id);
+CREATE UNIQUE INDEX message_orphaned_edit_key_index ON message_orphaned_edit (key_id, from_me, chat_row_id, sender_jid_row_id);
+CREATE INDEX premium_message_info_chat_row_id_index ON premium_message_info (chat_row_id);
+CREATE INDEX premium_message_info_account_jid_row_id_index ON premium_message_info (account_jid_row_id);
+CREATE INDEX message_sticker_pack_name_index ON message_sticker_pack (pack_name);
+CREATE INDEX message_sticker_pack_publisher_index ON message_sticker_pack (publisher);
+CREATE INDEX jid_lid_map_jid_index
+ON jid_map (jid_row_id);
+CREATE INDEX integrator_opt_in_index ON integrator_display_name (opt_in_status);
+CREATE INDEX message_poll_option_message_row_id_index ON message_poll_option (message_row_id);
+CREATE INDEX message_parent_association_parent_message_row_id_and_association_type_index ON message_parent_association (parent_message_row_id, association_type);
+CREATE INDEX group_past_participant_user_timestamp_index ON group_past_participant_user (timestamp);
+CREATE UNIQUE INDEX group_past_participant_user_index ON group_past_participant_user (group_jid_row_id, user_jid_row_id);
+CREATE UNIQUE INDEX message_orphan_key_index ON message_orphan (chat_row_id, from_me, key_id, sender_jid_row_id);
+CREATE INDEX message_orphan_parent_key_index ON message_orphan (parent_chat_row_id, parent_from_me, parent_key_id, parent_sender_jid_row_id);
+CREATE INDEX message_orphan_message_type_index ON message_orphan (orphan_message_type);
+CREATE INDEX message_orphan_reason_index ON message_orphan (orphan_message_reason);
+CREATE UNIQUE INDEX message_association_child_message_row_id_and_association_type_index ON message_association (child_message_row_id, association_type);
+CREATE INDEX message_association_parent_message_row_id_and_association_type_index ON message_association (parent_message_row_id, association_type);
+CREATE INDEX message_bot_feedback_index ON message_bot_feedback (bot_feedback_key_remote_jid, bot_feedback_key_from_me, bot_feedback_key_id);
+CREATE INDEX status_crossposting_v3_state_idx ON status_crossposting_v3 (state);
+CREATE UNIQUE INDEX message_media_vcard_count_index ON message_media_vcard_count(message_row_id);
+CREATE UNIQUE INDEX message_quoted_vcard_index ON message_quoted_vcard (message_row_id, vcard);
+CREATE UNIQUE INDEX message_media_interactive_annotation_index ON message_media_interactive_annotation (message_row_id, sort_order);
+CREATE UNIQUE INDEX message_key_index ON message (chat_row_id, from_me, key_id, sender_jid_row_id);
+CREATE INDEX message_sort_id_index ON message (sort_id);
+CREATE INDEX message_starred_index ON message(starred);
+CREATE INDEX message_type_chat_index ON message(chat_row_id, message_type);
+CREATE INDEX message_chat_id_index ON message (chat_row_id,_id);
+CREATE INDEX message_type_index ON message(message_type);
+CREATE INDEX message_chat_sort_id_index ON message (chat_row_id, sort_id);
+CREATE INDEX message_starred_sort_id_index ON message (starred, sort_id);
+CREATE UNIQUE INDEX message_payment_transaction_id_index ON pay_transaction (id);
+CREATE UNIQUE INDEX missed_call_logs_key_index ON missed_call_logs (message_row_id);
+CREATE INDEX transcription_segment_message_row_id_index
+          ON transcription_segment (message_row_id);
+CREATE UNIQUE INDEX frequent_index ON frequent (jid_row_id, type);
+CREATE INDEX bot_message_info_target_id_index 
+ON bot_message_info (target_id);
+CREATE UNIQUE INDEX call_log_participant_key_index ON call_log_participant_v2 (call_log_row_id, jid_row_id);
+CREATE UNIQUE INDEX user_device_info_index ON user_device_info (user_jid_row_id);
+CREATE INDEX user_device_info_account_type_index ON user_device_info (account_encryption_type);
+CREATE UNIQUE INDEX receipt_user_index ON receipt_user(message_row_id,receipt_user_jid_row_id);
+CREATE INDEX joinable_call_log_group_jid_row_id_index ON joinable_call_log (group_jid_row_id);
+CREATE UNIQUE INDEX joinable_call_log_call_id_index ON joinable_call_log (call_id);
+CREATE UNIQUE INDEX message_add_on_receipt_device_index ON message_add_on_receipt_device(message_add_on_row_id, receipt_device_jid_row_id);
+CREATE INDEX message_add_on_receipt_device_jid_index ON message_add_on_receipt_device(receipt_device_jid_row_id);
+CREATE INDEX scheduled_calls_chat_row_id_index ON scheduled_calls (key_chat_row_id, scheduled_timestamp, is_upcoming);
+CREATE INDEX scheduled_calls_key_id_index ON scheduled_calls (key_chat_row_id, key_id);
+CREATE INDEX scheduled_calls_timestamp_index_v2 ON scheduled_calls (is_upcoming, scheduled_timestamp);
+CREATE INDEX scheduled_calls_call_log_row_id_index ON scheduled_calls (call_log_row_id);
+CREATE INDEX message_details_author_device_jid_index ON message_details (author_device_jid);
+CREATE INDEX receipt_device_table_device_index ON receipt_device (receipt_device_jid_row_id);
+CREATE UNIQUE INDEX receipt_device_index ON receipt_device (message_row_id, receipt_device_jid_row_id);
+CREATE UNIQUE INDEX user_device_index ON user_device 
+                (
+                    user_jid_row_id,
+                    device_jid_row_id
+                );
+CREATE INDEX parent_group_participants_parent_jid_index ON parent_group_participants (parent_group_jid_row_id);
+CREATE INDEX mms_metadata_message_and_type_index
+        ON mms_metadata (message_row_id, type);
+CREATE INDEX mms_metadata_insert_timestamp_index
+        ON mms_metadata (insert_timestamp, type);
+CREATE INDEX mms_metadata_transferred_and_message_row_id_and_type_index
+        ON mms_metadata (transferred, message_row_id, type);
+CREATE UNIQUE INDEX message_link_index ON message_link (message_row_id, link_index);
+CREATE UNIQUE INDEX quoted_mentions_index ON message_quoted_mentions (message_row_id, jid_row_id);
+CREATE INDEX composition_chat_row_id_message_type_composition_type_index ON composition 
+        (chat_row_id, message_type, composition_type);
+CREATE INDEX composition_timestamp_composition_type_index ON composition 
+        (composition_type, timestamp);
+CREATE UNIQUE INDEX message_edit_info_index ON message_edit_info (original_key_id);
+CREATE INDEX message_template_button_index ON message_template_button (message_row_id);
+CREATE UNIQUE INDEX message_comment_parent_message_row_id_unique_index ON message_comment (parent_message_row_id, message_row_id);
+CREATE INDEX message_comment_message_row_id_index ON message_comment (message_row_id);
+CREATE INDEX message_view_once_media_state_index ON message_view_once_media (state);
+CREATE INDEX message_add_on_event_response_index ON message_add_on_event_response (response);
+CREATE INDEX message_add_on_pin_in_chat_state_index ON message_add_on_pin_in_chat (pin_in_chat_state);
+CREATE INDEX message_ephemeral_expire_timestamp_index ON message_ephemeral(expire_timestamp);
+CREATE INDEX scheduled_reminder_message_chat_row_id_index ON scheduled_reminder_message (chat_row_id);
+CREATE INDEX scheduled_reminder_message_timestamp_index ON scheduled_reminder_message (scheduled_reminder_timestamp_ms);
+CREATE INDEX sort_order_index ON favorite (sort_order);
+CREATE INDEX mms_thumbnail_metadata_transferred_index ON mms_thumbnail_metadata(transferred);
+CREATE UNIQUE INDEX message_vcard_index ON message_vcard (message_row_id, vcard);
+CREATE INDEX chat_group_type_index ON chat (group_type);
+CREATE INDEX chat_hidden_index ON chat (hidden);
+CREATE INDEX media_processed_video_message_id_index ON media_processed_video (message_row_id);
+CREATE UNIQUE INDEX message_add_on_key_index ON message_add_on (chat_row_id, from_me, key_id, sender_jid_row_id);
+CREATE INDEX message_add_on_status_index ON message_add_on(status);
+CREATE INDEX message_add_on_chat_status_index ON message_add_on(chat_row_id, status);
+CREATE INDEX message_add_on_parent_message_row_id_index ON message_add_on (parent_message_row_id);
+CREATE INDEX message_add_on_expiry_timestamp_index ON message_add_on(expiry_timestamp);
+CREATE UNIQUE INDEX mentions_index ON message_mentions (message_row_id, jid_row_id);
+CREATE INDEX sticker_pack_stickers_message_row_id_index ON message_sticker_pack_stickers (message_row_id);
+CREATE INDEX message_media_hash_index ON message_media(file_hash);
+CREATE INDEX message_media_chat_index ON message_media(chat_row_id);
+CREATE INDEX message_media_original_file_hash_index ON message_media(original_file_hash);
+CREATE UNIQUE INDEX missed_call_log_participants_key_index ON missed_call_log_participant (call_logs_row_id, jid);
+CREATE UNIQUE INDEX group_notification_version_index ON group_notification_version (group_jid_row_id);
+CREATE UNIQUE INDEX message_vcard_jid_index ON message_vcard_jid(vcard_jid_row_id, vcard_row_id, message_row_id);
+CREATE UNIQUE INDEX call_link_token_index ON call_link (token);
+CREATE INDEX deleted_chat_job_index ON deleted_chat_job(chat_row_id, _id);
+CREATE UNIQUE INDEX group_participant_user_index ON group_participant_user (group_jid_row_id, user_jid_row_id);
+CREATE INDEX addon_message_media_message_row_id_index ON addon_message_media (message_row_id );
+CREATE INDEX message_add_on_poll_vote_selected_option_message_add_on_row_id_index ON message_add_on_poll_vote_selected_option (message_add_on_row_id);
+CREATE INDEX message_newsletter_admin_invite_newsletter_jid_row_id_index ON message_newsletter_admin_invite (newsletter_jid_row_id);
+CREATE INDEX message_event_name_index ON message_event (name);
+CREATE INDEX message_event_chat_row_id_and_start_time_index ON message_event (chat_row_id, start_time);
+CREATE UNIQUE INDEX group_participant_device_index ON group_participant_device (group_participant_row_id, device_jid_row_id);
+CREATE UNIQUE INDEX jid_key_new_index ON jid (user, server, agent, device, type);
+CREATE UNIQUE INDEX jid_raw_string_index ON jid (raw_string);
+CREATE UNIQUE INDEX composition_mention_unique_composition_row_id_index on composition_mention (composition_row_id, jid_row_id);
+CREATE INDEX message_parent_last_comment_index 
+          ON message_comment_parent (chat_row_id, last_comment_message_row_id);
+CREATE INDEX message_media_interactive_annotation_embedded_music_index ON message_media_interactive_annotation_embedded_music (message_media_interactive_annotation_row_id);
+CREATE UNIQUE INDEX newsletter_message_reaction_index ON newsletter_message_reaction (message_row_id, reaction);
+CREATE UNIQUE INDEX newsletter_message_index ON newsletter_message (chat_row_id, server_message_id);
+CREATE INDEX is_autodelete_eligible_index ON newsletter_message (is_autodelete_eligible);
+CREATE INDEX newsletter_linked_account_chat_index ON newsletter_linked_account (chat_row_id);
+CREATE UNIQUE INDEX newsletter_my_reaction_orphan_message_index ON newsletter_my_reaction_orphan_message (chat_row_id, server_message_id);
+CREATE INDEX newsletter_membership_index ON newsletter (membership);
+CREATE INDEX newsletter_code_index ON newsletter (invite_code);
+CREATE INDEX newsletter_subscribers_by_type_index ON newsletter_subscribers (chat_row_id, type_of_fetch);
+CREATE INDEX reporting_info_receive_timestamp_index ON reporting_info (receive_timestamp);
+CREATE INDEX reporting_info_send_timestamp_index ON reporting_info (send_timestamp);
+CREATE INDEX reporting_info_message_row_id_index ON reporting_info (message_row_id);
+CREATE INDEX labels_sort_id ON labels (sort_id);
+CREATE UNIQUE INDEX labeled_jid_index ON labeled_jid (label_id, jid_row_id);
+CREATE INDEX attachments_quick_reply_id_index ON quick_reply_attachments (quick_reply_id);
+CREATE INDEX agent_device_index ON agent_devices(device);
+CREATE INDEX priority_inbox_chat_row_index ON priority_inbox (chat_row_id);
+CREATE INDEX priority_inbox_time_created_index ON priority_inbox (time_created);
+CREATE INDEX priority_inbox_score_index ON priority_inbox (priority_score);
+CREATE INDEX chat_assignee_index ON agent_chat_assignment (agent_id);
+CREATE INDEX message_ui_elements_message_row_id_index ON message_ui_elements (message_row_id);
+CREATE INDEX group_user_index ON group_participant_user (user_jid_row_id);
+CREATE INDEX jid_map_sort_id_index
+ON jid_map (jid_row_id, sort_id);
+CREATE INDEX lid_display_name_upper_username_index
+            ON lid_display_name (UPPER(username), lid_row_id);
+CREATE INDEX message_ui_elements_element_type_index ON message_ui_elements (element_type);
+CREATE INDEX message_media_interactive_annotation_type_index ON message_media_interactive_annotation (type);
+CREATE INDEX call_log_ts_index ON call_log (timestamp);
+CREATE INDEX mms_thumbnail_metadata_insert_timestamp_index ON mms_thumbnail_metadata(insert_timestamp);
 CREATE TABLE ai_rich_response_message_additional_info(message_row_id INTEGER PRIMARY KEY,ai_rich_response_additional_blob BLOB);
 CREATE TABLE url_tracking_map_element(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,original_url TEXT,consented_users_url TEXT,unconsented_users_url TEXT,card_index INTEGER);
 CREATE TABLE support_citation_metadata(message_row_id INTEGER PRIMARY KEY,help_article_citations TEXT);
 CREATE TABLE ai_rich_response_message_core_info(message_row_id INTEGER PRIMARY KEY,ai_rich_response_message_type INTEGER NOT NULL DEFAULT 0,ai_rich_response_submessage_types TEXT NOT NULL DEFAULT '',additional_table_mask INTEGER NOT NULL DEFAULT 0,ai_rich_response_core_blob BLOB, planning_status INTEGER, foa_native_data BLOB, foa_native_mutation BLOB);
+CREATE INDEX url_tracking_map_element_index ON url_tracking_map_element (message_row_id);
 CREATE TABLE group_participant_label_metadata(group_participant_user_row_id INTEGER PRIMARY KEY,edit_time DATETIME NOT NULL);
 CREATE TABLE message_system_biz_per_customer_3pd_data_share_state(message_row_id INTEGER PRIMARY KEY,data_sharing_enabled BOOLEAN);
 CREATE TABLE message_system_username_change(message_row_id INTEGER PRIMARY KEY,user_jid INTEGER,old_username TEXT,new_username TEXT,display_name TEXT);
+CREATE INDEX joinable_call_log_phash_identifier_index 
+            ON joinable_call_log (phash_identifier);
 CREATE TABLE message_system_lid_change(message_row_id INTEGER PRIMARY KEY,old_lid_row_id INTEGER,new_lid_row_id INTEGER,display_name TEXT);
+CREATE UNIQUE INDEX chat_account_jid_row_id_unique_index
+            ON chat (account_jid_row_id);
 CREATE TABLE ai_agentic_metadata(message_row_id INTEGER PRIMARY KEY,bot_progress_indicator_metadata BLOB);
 CREATE TABLE status_notification_info(message_row_id INTEGER PRIMARY KEY,response_status_row_id INTEGER NOT NULL,original_status_row_id INTEGER NOT NULL,type INTEGER NOT NULL);
 CREATE TABLE jid_user_metadata(jid_row_id INTEGER PRIMARY KEY NOT NULL,country_code TEXT);
@@ -214,8 +377,16 @@ CREATE TABLE optimised_delivery_info(message_row_id INTEGER PRIMARY KEY,msg_disc
 CREATE TABLE payment_link_metadata(message_row_id INTEGER PRIMARY KEY,link_header_type INTEGER,cta_button_text TEXT, params_json TEXT);
 CREATE TABLE message_limit_sharing_setting(message_row_id INTEGER PRIMARY KEY,enabled INTEGER,trigger INTEGER);
 CREATE TABLE message_system_business_broadcast(message_row_id INTEGER PRIMARY KEY,broadcast_raw_jid STRING NOT NULL);
+CREATE INDEX message_system_business_broadcast_raw_jid_index ON message_system_business_broadcast (broadcast_raw_jid);
 CREATE TABLE message_media_map(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,media_row_id INTEGER NOT NULL);
 CREATE TABLE extended_media_data(row_id INTEGER PRIMARY KEY AUTOINCREMENT,type INTEGER NOT NULL,direct_path TEXT,file_path TEXT,file_hash TEXT,file_size INTEGER,media_key BLOB,media_key_timestamp INTEGER,enc_file_hash TEXT,width INTEGER,height INTEGER,media_caption TEXT,transferred INTEGER, preview_path TEXT, external_url TEXT, mime_type TEXT, display_type INTEGER);
+CREATE INDEX extended_media_data_file_hash_index
+            ON extended_media_data (
+              file_hash
+            );
+CREATE INDEX message_media_map_message_row_id_index ON message_media_map (message_row_id);
+CREATE INDEX message_media_map_chat_row_id_index ON message_media_map (chat_row_id);
+CREATE INDEX message_media_map_media_row_id_index ON message_media_map (media_row_id);
 CREATE TABLE group_history_metadata(message_row_id INTEGER PRIMARY KEY NOT NULL,history_receivers TEXT NOT NULL,first_message_timestamp_seconds INTEGER NOT NULL,message_count INTEGER NOT NULL);
 CREATE TABLE group_history_bundle(message_row_id INTEGER PRIMARY KEY NOT NULL,process_state INTEGER NOT NULL DEFAULT 0, send_state INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE message_question(message_row_id INTEGER PRIMARY KEY,response_count INTEGER DEFAULT 0, response_read_count INTEGER DEFAULT 0, is_enabled INTEGER DEFAULT 1);
@@ -223,32 +394,114 @@ CREATE TABLE message_system_detected_outcomes_labeled_chat(message_row_id INTEGE
 CREATE TABLE gap_enforcement_business_chat_thread_info_cache(business_chat_row_id INTEGER PRIMARY KEY NOT NULL,business_chat_is_mm_thread INTEGER);
 CREATE TABLE thread_id(_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,chat_row_id INTEGER NOT NULL,from_me INTEGER NOT NULL,key_id TEXT NOT NULL,sender_jid_row_id INTEGER NOT NULL DEFAULT 0,thread_type INTEGER NOT NULL DEFAULT 0, pin_timestamp INTEGER, deleted INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE thread_messages(_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,thread_id INTEGER NOT NULL,message_row_id INTEGER NOT NULL);
+CREATE INDEX thread_messages_thread_id_index
+            ON thread_messages (
+              thread_id
+            );
+CREATE UNIQUE INDEX thread_messages_thread_id_and_message_row_id_index
+            ON thread_messages (
+              thread_id,
+              message_row_id
+            );
+CREATE INDEX thread_messages_message_row_id_index
+            ON thread_messages (
+              message_row_id
+            );
+CREATE UNIQUE INDEX thread_id_message_key_index
+            ON thread_id (
+              chat_row_id,
+              from_me,
+              key_id,
+              sender_jid_row_id,
+              thread_type           
+            );
+CREATE INDEX thread_id_chat_row_id_and_thread_type_index
+          ON thread_id (
+            chat_row_id,
+            thread_type
+           );
 CREATE TABLE group_history_bundle_association(message_row_id INTEGER PRIMARY KEY NOT NULL,bundle_message_row_id INTEGER NOT NULL, message_sort_id INTEGER, bundle_sender_jid_row_id INTEGER, bundle_message_key_id TEXT, bundle_message_key_from_me BOOLEAN, bundle_message_key_chat_row_id INTEGER);
 CREATE TABLE tee_message_info_table(message_row_id INTEGER PRIMARY KEY NOT NULL,message_interaction_type INTEGER,message_outgoing_status INTEGER,message_source INTEGER NOT NULL,message_replay_metadata BLOB);
 CREATE TABLE reminder(_id INTEGER PRIMARY KEY AUTOINCREMENT,reminder_id TEXT NOT NULL,message_row_id INTEGER,call_log_row_id INTEGER,surface INTEGER NOT NULL,timestamp DATETIME NOT NULL,notified INTEGER NOT NULL DEFAULT 0);
+CREATE UNIQUE INDEX reminder_message_row_id_idx 
+            ON reminder (message_row_id);
+CREATE UNIQUE INDEX reminder_call_log_row_id_idx 
+            ON reminder (call_log_row_id);
+CREATE UNIQUE INDEX reminder_id_idx 
+            ON reminder (reminder_id);
 CREATE TABLE status_attribution(_id INTEGER PRIMARY KEY AUTOINCREMENT,status_row_id INTEGER NOT NULL,type INTEGER NOT NULL,content BLOB);
 CREATE TABLE message_add_on_status_question_answer(message_add_on_row_id INTEGER PRIMARY KEY,answer TEXT);
+CREATE INDEX status_attribution_status_row_id_index
+            ON status_attribution (status_row_id);
 CREATE TABLE message_system_privacy(message_row_id INTEGER PRIMARY KEY,is_transition INTEGER,message_privacy_type INTEGER);
 CREATE TABLE message_add_on_question_response(message_add_on_row_id INTEGER PRIMARY KEY,response TEXT);
 CREATE TABLE question_reply_quoted_message(message_row_id INTEGER PRIMARY KEY,question_text TEXT,response_text TEXT,server_question_id INTEGER, question_message_type INTEGER);
 CREATE TABLE integrity_chat_info(chat_row_id INTEGER PRIMARY KEY,is_reach_out INTEGER, is_eligible_for_link_friction_banner INTEGER);
 CREATE TABLE frequent_forward_chat(chat_row_id INTEGER PRIMARY KEY,num_forward INTEGER,last_forward_timestamp INTEGER, last_scan INTEGER);
+CREATE INDEX forward_frequency_index 
+            ON frequent_forward_chat(num_forward);
+CREATE INDEX last_timestamp_index 
+            ON frequent_forward_chat(last_forward_timestamp);
 CREATE TABLE status_info_ranking_signals(chat_jid TEXT PRIMARY KEY NOT NULL,first_status_timestamp INTEGER NOT NULL DEFAULT 0,last_expired_status_timestamp INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE status_quoted_message(message_row_id INTEGER PRIMARY KEY,description_text TEXT NOT NULL,thumbnail BLOB,type INTEGER,original_status_key_id TEXT,original_status_is_from_me INTEGER,original_status_chat_id TEXT,original_status_sender_id TEXT,add_on_key_id TEXT,add_on_is_from_me INTEGER,add_on_chat_id TEXT,add_on_sender_id TEXT);
+CREATE INDEX last_scan_index 
+          ON 
+              frequent_forward_chat(last_scan);
 CREATE TABLE message_add_on_status_sticker_interaction(message_add_on_row_id INTEGER PRIMARY KEY,sticker_key TEXT,type INTEGER);
 CREATE TABLE ai_thread_info(thread_id_row_id INTEGER PRIMARY KEY,title TEXT,creation_ts INTEGER NOT NULL,variant INTEGER NOT NULL DEFAULT 1,last_thread_messages_row_id INTEGER,last_message_timestamp INTEGER, title_source INTEGER, unseen_message_count INTEGER, origin_chat_row_id INTEGER);
 CREATE TABLE message_inline_video_metadata(message_row_id INTEGER PRIMARY KEY NOT NULL,video_content_url TEXT NOT NULL,is_muted INTEGER NOT NULL DEFAULT 0, caption TEXT);
+CREATE INDEX group_history_bundle_association_bundle_message_key_index 
+            ON group_history_bundle_association (bundle_message_key_id);
+CREATE INDEX ai_thread_info_last_message_timestamp_index
+          ON ai_thread_info(last_message_timestamp);
+CREATE INDEX ai_thread_info_variant_index
+          ON ai_thread_info(variant);
+CREATE INDEX last_expired_status_timestamp_index
+      ON status_info_ranking_signals(last_expired_status_timestamp);
+CREATE INDEX message_add_on_reaction_empty_reaction_index
+            ON message_add_on_reaction (reaction)
+            WHERE reaction = '';
+CREATE INDEX is_group_status_index 
+            ON status_message_info (is_group_status);
 CREATE TABLE payment_extended_metadata(message_row_id INTEGER PRIMARY KEY,platform TEXT,type INTEGER,message_params_json TEXT);
 CREATE TABLE bot_message_sharing_info(message_row_id INTEGER PRIMARY KEY,message_id TEXT,bot_entry_point_origin INTEGER,forward_score INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX bot_message_sharing_info_message_id_index 
+        ON bot_message_sharing_info (message_id);
 CREATE TABLE integrity_deleted_chat_message_count(id INTEGER PRIMARY KEY AUTOINCREMENT,lid TEXT NOT NULL DEFAULT '',messages_receive_date TEXT NOT NULL DEFAULT '',messages_count INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE integrity_deleted_chat_metadata(id INTEGER PRIMARY KEY AUTOINCREMENT,lid TEXT NOT NULL DEFAULT '',chat_type INTEGER NOT NULL DEFAULT 1,is_first_reach_out INTEGER NOT NULL DEFAULT 0,chat_creation_timestamp INTEGER NOT NULL DEFAULT 0,last_incoming_message_timestamp INTEGER NOT NULL DEFAULT 0,lidHash TEXT NOT NULL DEFAULT '');
 CREATE TABLE message_newsletter_follower_invite(message_row_id INTEGER PRIMARY KEY,newsletter_jid_row_id INTEGER NOT NULL,newsletter_name TEXT NOT NULL);
+CREATE INDEX message_newsletter_follower_invite_newsletter_jid_row_id_index 
+            ON message_newsletter_follower_invite (newsletter_jid_row_id);
+CREATE INDEX integrity_deleted_chat_message_count_lid_message_receive_date_index
+            ON integrity_deleted_chat_message_count (lid, messages_receive_date);
 CREATE TABLE dynamic_audience_sources(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,dynamic_audience_type INTEGER NOT NULL,dynamic_audience_id INTEGER NOT NULL);
 CREATE TABLE broadcast_chat_details(chat_row_id INTEGER PRIMARY KEY NOT NULL,use_case INTEGER NOT NULL);
+CREATE INDEX broadcast_chat_details_use_case_index ON broadcast_chat_details (use_case);
+CREATE INDEX idx_dynamic_audience_sources_dynamic_audience_type_and_id ON dynamic_audience_sources (dynamic_audience_type, dynamic_audience_id);
+CREATE UNIQUE INDEX idx_dynamic_audience_sources_unique_index ON dynamic_audience_sources (chat_row_id, dynamic_audience_type, dynamic_audience_id);
 CREATE TABLE message_system_update_audience_linking(message_row_id INTEGER PRIMARY KEY,lists_to_remove_count INTEGER,lists_to_sync_count INTEGER);
+CREATE INDEX integrity_chat_info_chat_row_id_index
+            ON integrity_chat_info (chat_row_id);
+CREATE INDEX thread_id_active_pin_timestamp_index
+          ON thread_id (
+            pin_timestamp
+           ) WHERE deleted = 0;
 CREATE TABLE message_quarantine(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER,timestamp INTEGER NOT NULL,original_protobuf BLOB NOT NULL,serialized_stanza BLOB, protobuf_type INTEGER);
 CREATE TABLE message_structure_analysis_result(message_row_id INTEGER PRIMARY KEY NOT NULL,message_field_json_array TEXT,submessage_field_json_array TEXT,button_value_json_array TEXT);
 CREATE TABLE recently_selected_search_table(recent_chat_row_id INTEGER PRIMARY KEY,search_timestamp INTEGER);
+CREATE INDEX message_quarantine_by_chat
+            ON message_quarantine (
+              chat_row_id
+            );
+CREATE INDEX message_quarantine_by_timestamp
+            ON message_quarantine (
+              timestamp
+            );
+CREATE INDEX recent_selected_search_timestamp_index
+            ON
+                recently_selected_search_table (search_timestamp);
+CREATE INDEX ai_thread_info_origin_chat_row_id_index
+          ON ai_thread_info(origin_chat_row_id);
 CREATE TABLE message_biz_context_info(message_row_id INTEGER PRIMARY KEY,weblink_render_config INTEGER);
 CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,chat_request_type TEXT NOT NULL);
 CREATE VIEW available_message_view AS
