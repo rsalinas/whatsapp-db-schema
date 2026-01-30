@@ -49,7 +49,7 @@ CREATE TABLE priority_inbox(_id INTEGER PRIMARY KEY AUTOINCREMENT,priority_score
 CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT);
 CREATE TABLE quick_reply_attachments(_id INTEGER PRIMARY KEY AUTOINCREMENT,quick_reply_id TEXT NOT NULL,uri TEXT NOT NULL,caption TEXT,media_type INTEGER);
 CREATE TABLE message_details(message_row_id INTEGER PRIMARY KEY,author_device_jid INTEGER);
-CREATE TABLE message_quoted_payment_invite(message_row_id INTEGER PRIMARY KEY,service INTEGER,expiration_timestamp INTEGER);
+CREATE TABLE message_quoted_payment_invite(message_row_id INTEGER PRIMARY KEY,service INTEGER,expiration_timestamp INTEGER, incentive_eligible INTEGER);
 CREATE TABLE forwarded_newsletter_message_info(message_row_id INTEGER PRIMARY KEY,newsletter_jid_row_id INTEGER NOT NULL,newsletter_server_message_id INTEGER NOT NULL,newsletter_name TEXT NOT NULL DEFAULT '', profile_name TEXT);
 CREATE TABLE message_add_on_keep_in_chat(message_add_on_row_id INTEGER PRIMARY KEY,keep_in_chat_state INTEGER NOT NULL DEFAULT 0,sender_timestamp INTEGER,keep_count INTEGER NOT NULL DEFAULT 0,actor_device_jid_row_id INTEGER);
 CREATE TABLE favorite(_id INTEGER PRIMARY KEY AUTOINCREMENT,jid_row_id INTEGER UNIQUE,favorite_type INTEGER,sort_order INTEGER);
@@ -155,7 +155,7 @@ CREATE TABLE quick_reply_keywords(_id INTEGER PRIMARY KEY AUTOINCREMENT,quick_re
 CREATE TABLE message_system_group_with_parent(message_row_id INTEGER PRIMARY KEY,linked_parent_group_name TEXT);
 CREATE TABLE message_quoted_call_log(message_row_id INTEGER PRIMARY KEY,video_call BOOLEAN,call_result INTEGER);
 CREATE TABLE message_payment_transaction_reminder(message_row_id INTEGER PRIMARY KEY,web_stub TEXT,amount TEXT,transfer_date TEXT,payment_sender_name TEXT,expiration INTEGER,remote_message_key TEXT);
-CREATE TABLE newsletter_message(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER NOT NULL,server_message_id INTEGER NOT NULL,comments_count INTEGER NOT NULL DEFAULT 0,reaction_from_me TEXT,extra_newsletter_tables INTEGER NOT NULL DEFAULT 0,extra_table_last_update_ts INTEGER,reactions_from_me_ts INTEGER,view_count INTEGER, is_autodelete_eligible INTEGER, is_wamo_sub INTEGER, forwards_count INTEGER, admin_profile_id INTEGER, admin_profile_name TEXT, admin_profile_picture_id INTEGER, admin_profile_picture_url TEXT);
+CREATE TABLE newsletter_message(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER NOT NULL,server_message_id INTEGER NOT NULL,comments_count INTEGER NOT NULL DEFAULT 0,reaction_from_me TEXT,extra_newsletter_tables INTEGER NOT NULL DEFAULT 0,extra_table_last_update_ts INTEGER,reactions_from_me_ts INTEGER,view_count INTEGER, is_autodelete_eligible INTEGER, is_wamo_sub INTEGER, forwards_count INTEGER, admin_profile_id INTEGER, admin_profile_name TEXT, admin_profile_picture_id INTEGER, admin_profile_picture_url TEXT, is_paid_partnership INTEGER);
 CREATE TABLE invoice_transactions(message_row_id INTEGER PRIMARY KEY,pay_transaction_id INTEGER);
 CREATE TABLE message_edit_info(message_row_id INTEGER PRIMARY KEY,original_key_id TEXT NOT NULL,edited_timestamp INTEGER NOT NULL,sender_timestamp INTEGER NOT NULL);
 CREATE TABLE status_message_info(message_row_id INTEGER PRIMARY KEY,status_distribution_mode INTEGER NOT NULL, is_mentioned INTEGER, status_mentions TEXT, cannot_receive_reactions INTEGER, cannot_be_ranked INTEGER, has_embedded_music INTEGER, status_mention_source TEXT, status_attribution_type INTEGER, is_group_status INTEGER, can_be_reshared INTEGER, ranking_version INTEGER, external_media_duration_seconds INTEGER, original_status_message_row_id INTEGER, original_poster_notification_type INTEGER, status_source_type INTEGER, selected_audience_list TEXT, override_notification_recipient_jid TEXT, can_receive_multi_reactions INTEGER, audience_type INTEGER, status_poster_contact_type INTEGER);
@@ -172,7 +172,7 @@ CREATE TABLE suggested_replies(message_row_id INTEGER PRIMARY KEY,customer_messa
 CREATE TABLE message_system_chat_participant(message_row_id INTEGER,user_jid_row_id INTEGER);
 CREATE TABLE message_system_community_link_changed(message_row_id INTEGER PRIMARY KEY,old_group_type INTEGER,new_group_type INTEGER NOT NULL,linked_parent_group_jid_row_id INTEGER);
 CREATE TABLE call_log_participant_v2(_id INTEGER PRIMARY KEY AUTOINCREMENT,call_log_row_id INTEGER,jid_row_id INTEGER,call_result INTEGER);
-CREATE TABLE message_payment_invite(message_row_id INTEGER PRIMARY KEY,service INTEGER,expiration_timestamp INTEGER);
+CREATE TABLE message_payment_invite(message_row_id INTEGER PRIMARY KEY,service INTEGER,expiration_timestamp INTEGER, incentive_eligible INTEGER);
 CREATE TABLE message_add_on(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER,from_me INTEGER,key_id TEXT NOT NULL,sender_jid_row_id INTEGER,parent_message_row_id INTEGER,timestamp INTEGER,status INTEGER,message_add_on_type INTEGER,received_timestamp INTEGER,expiry_duration_in_secs INTEGER,server_timestamp INTEGER,expiry_timestamp INTEGER, expiry_type INTEGER);
 CREATE TABLE message_future(message_row_id INTEGER PRIMARY KEY,version INTEGER,data BLOB,future_message_type INTEGER,future_proof_stanza BLOB,edit_version INTEGER, message_stanza_data BLOB);
 CREATE TABLE message_comment_parent(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER,number_of_comments INTEGER NOT NULL,last_comment_ts INTEGER,last_comment_message_row_id INTEGER);
@@ -507,6 +507,8 @@ CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,
 CREATE TABLE message_system_side_chat_privacy(message_row_id INTEGER PRIMARY KEY,origin_chat_row_id INTEGER NOT NULL);
 CREATE INDEX call_log_telecom_uuid_index 
             ON call_log (telecom_uuid) WHERE telecom_uuid IS NOT NULL;
+CREATE INDEX message_event_join_link_index
+            ON message_event (join_link);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -890,5 +892,3 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,jid_row_id,original_jid_row_id) */;
-CREATE INDEX message_event_join_link_index
-            ON message_event (join_link);
