@@ -199,6 +199,20 @@ CREATE TABLE message_media_interactive_annotation_embedded_music(message_media_i
 CREATE TABLE message_span_indices(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,start_index INTEGER,end_index INTEGER,span_type INTEGER);
 CREATE TABLE mms_metadata(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,direct_path TEXT,media_key BLOB,media_key_timestamp INTEGER,enc_thumb_hash TEXT,thumb_hash TEXT,thumb_width INTEGER,thumb_height INTEGER,transferred INTEGER,micro_thumbnail BLOB,insert_timestamp INTEGER,handle TEXT,type INTEGER);
 CREATE TABLE bot_memory_metadata(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,memory_annotated_user_message_key_id TEXT NOT NULL,memory TEXT,memory_id TEXT NOT NULL,added INTEGER NOT NULL, bot_jid_row_id INTEGER);
+CREATE VIRTUAL TABLE message_newsletter_fts USING FTS4(content, fts_jid, fts_namespace)
+/* message_newsletter_fts(content,fts_jid,fts_namespace) */;
+CREATE TABLE IF NOT EXISTS 'message_newsletter_fts_content'(docid INTEGER PRIMARY KEY, 'c0content', 'c1fts_jid', 'c2fts_namespace');
+CREATE TABLE IF NOT EXISTS 'message_newsletter_fts_segments'(blockid INTEGER PRIMARY KEY, block BLOB);
+CREATE TABLE IF NOT EXISTS 'message_newsletter_fts_segdir'(level INTEGER,idx INTEGER,start_block INTEGER,leaves_end_block INTEGER,end_block INTEGER,root BLOB,PRIMARY KEY(level, idx));
+CREATE TABLE IF NOT EXISTS 'message_newsletter_fts_docsize'(docid INTEGER PRIMARY KEY, size BLOB);
+CREATE TABLE IF NOT EXISTS 'message_newsletter_fts_stat'(id INTEGER PRIMARY KEY, value BLOB);
+CREATE VIRTUAL TABLE message_ftsv2 USING FTS4(content, fts_jid, fts_namespace)
+/* message_ftsv2(content,fts_jid,fts_namespace) */;
+CREATE TABLE IF NOT EXISTS 'message_ftsv2_content'(docid INTEGER PRIMARY KEY, 'c0content', 'c1fts_jid', 'c2fts_namespace');
+CREATE TABLE IF NOT EXISTS 'message_ftsv2_segments'(blockid INTEGER PRIMARY KEY, block BLOB);
+CREATE TABLE IF NOT EXISTS 'message_ftsv2_segdir'(level INTEGER,idx INTEGER,start_block INTEGER,leaves_end_block INTEGER,end_block INTEGER,root BLOB,PRIMARY KEY(level, idx));
+CREATE TABLE IF NOT EXISTS 'message_ftsv2_docsize'(docid INTEGER PRIMARY KEY, size BLOB);
+CREATE TABLE IF NOT EXISTS 'message_ftsv2_stat'(id INTEGER PRIMARY KEY, value BLOB);
 CREATE INDEX message_system_chat_participant_index ON message_system_chat_participant (message_row_id);
 CREATE UNIQUE INDEX message_media_interactive_annotation_vertex_index ON message_media_interactive_annotation_vertex (message_media_interactive_annotation_row_id, sort_order);
 CREATE INDEX message_span_indices_message_and_span_index ON 
