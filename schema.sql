@@ -213,6 +213,2322 @@ CREATE TABLE IF NOT EXISTS 'message_ftsv2_segments'(blockid INTEGER PRIMARY KEY,
 CREATE TABLE IF NOT EXISTS 'message_ftsv2_segdir'(level INTEGER,idx INTEGER,start_block INTEGER,leaves_end_block INTEGER,end_block INTEGER,root BLOB,PRIMARY KEY(level, idx));
 CREATE TABLE IF NOT EXISTS 'message_ftsv2_docsize'(docid INTEGER PRIMARY KEY, size BLOB);
 CREATE TABLE IF NOT EXISTS 'message_ftsv2_stat'(id INTEGER PRIMARY KEY, value BLOB);
+CREATE TRIGGER agent_chat_assignment_delete_for_backup_changes_trigger
+        AFTER DELETE ON agent_chat_assignment
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'agent_chat_assignment')
+  AND
+  (table_row_id = OLD.jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'agent_chat_assignment', OLD.jid_row_id);
+        END;
+CREATE TRIGGER agent_chat_assignment_insert_for_backup_changes_trigger
+        AFTER INSERT ON agent_chat_assignment
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'agent_chat_assignment')
+  AND
+  (table_row_id = NEW.jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'agent_chat_assignment', NEW.jid_row_id);
+        END;
+CREATE TRIGGER agent_chat_assignment_update_for_backup_changes_trigger
+        AFTER UPDATE ON agent_chat_assignment
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'agent_chat_assignment')
+  AND
+  (table_row_id = NEW.jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'agent_chat_assignment', NEW.jid_row_id);
+        END;
+CREATE TRIGGER agent_devices_delete_for_backup_changes_trigger
+        AFTER DELETE ON agent_devices
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'agent_devices')
+  AND
+  (table_row_id = OLD.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'agent_devices', OLD.rowid);
+        END;
+CREATE TRIGGER agent_devices_insert_for_backup_changes_trigger
+        AFTER INSERT ON agent_devices
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'agent_devices')
+  AND
+  (table_row_id = NEW.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'agent_devices', NEW.rowid);
+        END;
+CREATE TRIGGER agent_devices_update_for_backup_changes_trigger
+        AFTER UPDATE ON agent_devices
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'agent_devices')
+  AND
+  (table_row_id = NEW.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'agent_devices', NEW.rowid);
+        END;
+CREATE TRIGGER agent_message_attribution_delete_for_backup_changes_trigger
+        AFTER DELETE ON agent_message_attribution
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'agent_message_attribution')
+  AND
+  (table_row_id = OLD.message_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'agent_message_attribution', OLD.message_row_id);
+        END;
+CREATE TRIGGER agent_message_attribution_insert_for_backup_changes_trigger
+        AFTER INSERT ON agent_message_attribution
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'agent_message_attribution')
+  AND
+  (table_row_id = NEW.message_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'agent_message_attribution', NEW.message_row_id);
+        END;
+CREATE TRIGGER agent_message_attribution_update_for_backup_changes_trigger
+        AFTER UPDATE ON agent_message_attribution
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'agent_message_attribution')
+  AND
+  (table_row_id = NEW.message_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'agent_message_attribution', NEW.message_row_id);
+        END;
+CREATE TRIGGER away_messages_delete_for_backup_changes_trigger
+        AFTER DELETE ON away_messages
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'away_messages')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'away_messages', OLD._id);
+        END;
+CREATE TRIGGER away_messages_insert_for_backup_changes_trigger
+        AFTER INSERT ON away_messages
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'away_messages')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'away_messages', NEW._id);
+        END;
+CREATE TRIGGER away_messages_update_for_backup_changes_trigger
+        AFTER UPDATE ON away_messages
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'away_messages')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'away_messages', NEW._id);
+        END;
+CREATE TRIGGER bot_memory_metadata_delete_for_backup_changes_trigger
+        AFTER DELETE ON bot_memory_metadata
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'bot_memory_metadata')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'bot_memory_metadata', OLD._id);
+        END;
+CREATE TRIGGER bot_memory_metadata_insert_for_backup_changes_trigger
+        AFTER INSERT ON bot_memory_metadata
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'bot_memory_metadata')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'bot_memory_metadata', NEW._id);
+        END;
+CREATE TRIGGER bot_memory_metadata_update_for_backup_changes_trigger
+        AFTER UPDATE ON bot_memory_metadata
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'bot_memory_metadata')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'bot_memory_metadata', NEW._id);
+        END;
+CREATE TRIGGER call_link_delete_for_backup_changes_trigger
+        AFTER DELETE ON call_link
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'call_link')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'call_link', OLD._id);
+        END;
+CREATE TRIGGER call_link_insert_for_backup_changes_trigger
+        AFTER INSERT ON call_link
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'call_link')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'call_link', NEW._id);
+        END;
+CREATE TRIGGER call_link_update_for_backup_changes_trigger
+        AFTER UPDATE ON call_link
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'call_link')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'call_link', NEW._id);
+        END;
+CREATE TRIGGER call_log_bd_for_call_log_participant_v2_trigger BEFORE DELETE ON call_log BEGIN DELETE FROM call_log_participant_v2 WHERE call_log_row_id = old._id; END;
+CREATE TRIGGER call_log_bd_for_call_unknown_caller_trigger BEFORE DELETE ON call_log BEGIN DELETE FROM call_unknown_caller WHERE call_log_row_id=OLD._id; END;
+CREATE TRIGGER call_log_bd_for_joinable_call_log_trigger BEFORE DELETE ON call_log BEGIN DELETE FROM joinable_call_log WHERE call_log_row_id=old._id; END;
+CREATE TRIGGER call_log_delete_for_backup_changes_trigger
+        AFTER DELETE ON call_log
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'call_log')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'call_log', OLD._id);
+        END;
+CREATE TRIGGER call_log_insert_for_backup_changes_trigger
+        AFTER INSERT ON call_log
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'call_log')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'call_log', NEW._id);
+        END;
+CREATE TRIGGER call_log_participant_v2_delete_for_backup_changes_trigger
+        AFTER DELETE ON call_log_participant_v2
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'call_log_participant_v2')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'call_log_participant_v2', OLD._id);
+        END;
+CREATE TRIGGER call_log_participant_v2_insert_for_backup_changes_trigger
+        AFTER INSERT ON call_log_participant_v2
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'call_log_participant_v2')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'call_log_participant_v2', NEW._id);
+        END;
+CREATE TRIGGER call_log_participant_v2_update_for_backup_changes_trigger
+        AFTER UPDATE ON call_log_participant_v2
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'call_log_participant_v2')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'call_log_participant_v2', NEW._id);
+        END;
+CREATE TRIGGER call_log_update_for_backup_changes_trigger
+        AFTER UPDATE ON call_log
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'call_log')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'call_log', NEW._id);
+        END;
+CREATE TRIGGER chat_bd_for_bot_chat_info_trigger BEFORE DELETE ON chat BEGIN DELETE FROM bot_chat_info WHERE chat_row_id = old._id; END;
+CREATE TRIGGER chat_bd_for_chat_ephemeral_trigger BEFORE DELETE ON chat BEGIN DELETE FROM chat_ephemeral WHERE chat_row_id=old._id; END;
+CREATE TRIGGER chat_bd_for_community_chat_trigger BEFORE DELETE ON chat BEGIN DELETE FROM community_chat WHERE chat_row_id=old._id; END;
+CREATE TRIGGER chat_bd_for_composition_trigger BEFORE DELETE ON chat BEGIN DELETE FROM composition WHERE chat_row_id=old._id; END;
+CREATE TRIGGER chat_bd_for_message_link_trigger BEFORE DELETE ON chat BEGIN DELETE FROM message_link WHERE chat_row_id=old._id; END;
+CREATE TRIGGER chat_bd_for_message_orphan_trigger BEFORE DELETE ON chat BEGIN DELETE FROM message_orphan WHERE parent_chat_row_id=old._id; END;
+CREATE TRIGGER chat_bd_for_newsletter_linked_account_trigger BEFORE DELETE ON chat BEGIN DELETE FROM newsletter_linked_account WHERE chat_row_id=old._id; END;
+CREATE TRIGGER chat_bd_for_newsletter_trigger BEFORE DELETE ON chat BEGIN DELETE FROM newsletter WHERE chat_row_id=old._id; END;
+CREATE TRIGGER chat_delete_for_backup_changes_trigger
+        AFTER DELETE ON chat
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'chat')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'chat', OLD._id);
+        END;
+CREATE TRIGGER chat_insert_for_backup_changes_trigger
+        AFTER INSERT ON chat
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'chat')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'chat', NEW._id);
+        END;
+CREATE TRIGGER chat_update_for_backup_changes_trigger
+        AFTER UPDATE ON chat
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'chat')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'chat', NEW._id);
+        END;
+CREATE TRIGGER community_chat_delete_for_backup_changes_trigger
+        AFTER DELETE ON community_chat
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'community_chat')
+  AND
+  (table_row_id = OLD.chat_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'community_chat', OLD.chat_row_id);
+        END;
+CREATE TRIGGER community_chat_insert_for_backup_changes_trigger
+        AFTER INSERT ON community_chat
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'community_chat')
+  AND
+  (table_row_id = NEW.chat_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'community_chat', NEW.chat_row_id);
+        END;
+CREATE TRIGGER community_chat_update_for_backup_changes_trigger
+        AFTER UPDATE ON community_chat
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'community_chat')
+  AND
+  (table_row_id = NEW.chat_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'community_chat', NEW.chat_row_id);
+        END;
+CREATE TRIGGER composition_bd_for_composition_media_trigger BEFORE DELETE ON composition BEGIN DELETE FROM composition_media WHERE composition_row_id=old._id; END;
+CREATE TRIGGER composition_bd_for_composition_mention_trigger BEFORE DELETE ON composition BEGIN DELETE FROM composition_mention WHERE composition_row_id=old._id; END;
+CREATE TRIGGER frequent_delete_for_backup_changes_trigger
+        AFTER DELETE ON frequent
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'frequent')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'frequent', OLD._id);
+        END;
+CREATE TRIGGER frequent_insert_for_backup_changes_trigger
+        AFTER INSERT ON frequent
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'frequent')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'frequent', NEW._id);
+        END;
+CREATE TRIGGER frequent_update_for_backup_changes_trigger
+        AFTER UPDATE ON frequent
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'frequent')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'frequent', NEW._id);
+        END;
+CREATE TRIGGER group_notification_version_delete_for_backup_changes_trigger
+        AFTER DELETE ON group_notification_version
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_notification_version')
+  AND
+  (table_row_id = OLD.group_jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'group_notification_version', OLD.group_jid_row_id);
+        END;
+CREATE TRIGGER group_notification_version_insert_for_backup_changes_trigger
+        AFTER INSERT ON group_notification_version
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_notification_version')
+  AND
+  (table_row_id = NEW.group_jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'group_notification_version', NEW.group_jid_row_id);
+        END;
+CREATE TRIGGER group_notification_version_update_for_backup_changes_trigger
+        AFTER UPDATE ON group_notification_version
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_notification_version')
+  AND
+  (table_row_id = NEW.group_jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'group_notification_version', NEW.group_jid_row_id);
+        END;
+CREATE TRIGGER group_participant_device_delete_for_backup_changes_trigger
+        AFTER DELETE ON group_participant_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_participant_device')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'group_participant_device', OLD._id);
+        END;
+CREATE TRIGGER group_participant_device_insert_for_backup_changes_trigger
+        AFTER INSERT ON group_participant_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_participant_device')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'group_participant_device', NEW._id);
+        END;
+CREATE TRIGGER group_participant_device_update_for_backup_changes_trigger
+        AFTER UPDATE ON group_participant_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_participant_device')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'group_participant_device', NEW._id);
+        END;
+CREATE TRIGGER group_participant_user_bd_for_group_participant_device_trigger BEFORE DELETE ON group_participant_user BEGIN DELETE FROM group_participant_device WHERE group_participant_row_id=old._id; END;
+CREATE TRIGGER group_participant_user_delete_for_backup_changes_trigger
+        AFTER DELETE ON group_participant_user
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_participant_user')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'group_participant_user', OLD._id);
+        END;
+CREATE TRIGGER group_participant_user_insert_for_backup_changes_trigger
+        AFTER INSERT ON group_participant_user
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_participant_user')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'group_participant_user', NEW._id);
+        END;
+CREATE TRIGGER group_participant_user_update_for_backup_changes_trigger
+        AFTER UPDATE ON group_participant_user
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_participant_user')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'group_participant_user', NEW._id);
+        END;
+CREATE TRIGGER group_past_participant_user_delete_for_backup_changes_trigger
+        AFTER DELETE ON group_past_participant_user
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_past_participant_user')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'group_past_participant_user', OLD._id);
+        END;
+CREATE TRIGGER group_past_participant_user_insert_for_backup_changes_trigger
+        AFTER INSERT ON group_past_participant_user
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_past_participant_user')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'group_past_participant_user', NEW._id);
+        END;
+CREATE TRIGGER group_past_participant_user_update_for_backup_changes_trigger
+        AFTER UPDATE ON group_past_participant_user
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'group_past_participant_user')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'group_past_participant_user', NEW._id);
+        END;
+CREATE TRIGGER jid_delete_for_backup_changes_trigger
+        AFTER DELETE ON jid
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'jid')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'jid', OLD._id);
+        END;
+CREATE TRIGGER jid_insert_for_backup_changes_trigger
+        AFTER INSERT ON jid
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'jid')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'jid', NEW._id);
+        END;
+CREATE TRIGGER jid_update_for_backup_changes_trigger
+        AFTER UPDATE ON jid
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'jid')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'jid', NEW._id);
+        END;
+CREATE TRIGGER joinable_call_log_delete_for_backup_changes_trigger
+        AFTER DELETE ON joinable_call_log
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'joinable_call_log')
+  AND
+  (table_row_id = OLD.call_log_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'joinable_call_log', OLD.call_log_row_id);
+        END;
+CREATE TRIGGER joinable_call_log_insert_for_backup_changes_trigger
+        AFTER INSERT ON joinable_call_log
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'joinable_call_log')
+  AND
+  (table_row_id = NEW.call_log_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'joinable_call_log', NEW.call_log_row_id);
+        END;
+CREATE TRIGGER joinable_call_log_update_for_backup_changes_trigger
+        AFTER UPDATE ON joinable_call_log
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'joinable_call_log')
+  AND
+  (table_row_id = NEW.call_log_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'joinable_call_log', NEW.call_log_row_id);
+        END;
+CREATE TRIGGER keywords_delete_for_backup_changes_trigger
+        AFTER DELETE ON keywords
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'keywords')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'keywords', OLD._id);
+        END;
+CREATE TRIGGER keywords_insert_for_backup_changes_trigger
+        AFTER INSERT ON keywords
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'keywords')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'keywords', NEW._id);
+        END;
+CREATE TRIGGER keywords_update_for_backup_changes_trigger
+        AFTER UPDATE ON keywords
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'keywords')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'keywords', NEW._id);
+        END;
+CREATE TRIGGER labeled_jid_delete_for_backup_changes_trigger
+        AFTER DELETE ON labeled_jid
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'labeled_jid')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'labeled_jid', OLD._id);
+        END;
+CREATE TRIGGER labeled_jid_insert_for_backup_changes_trigger
+        AFTER INSERT ON labeled_jid
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'labeled_jid')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'labeled_jid', NEW._id);
+        END;
+CREATE TRIGGER labeled_jid_update_for_backup_changes_trigger
+        AFTER UPDATE ON labeled_jid
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'labeled_jid')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'labeled_jid', NEW._id);
+        END;
+CREATE TRIGGER labels_bd_for_labeled_jid_trigger BEFORE DELETE ON labels BEGIN DELETE FROM labeled_jid WHERE label_id=old._id; END;
+CREATE TRIGGER labels_delete_for_backup_changes_trigger
+        AFTER DELETE ON labels
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'labels')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'labels', OLD._id);
+        END;
+CREATE TRIGGER labels_insert_for_backup_changes_trigger
+        AFTER INSERT ON labels
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'labels')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'labels', NEW._id);
+        END;
+CREATE TRIGGER labels_update_for_backup_changes_trigger
+        AFTER UPDATE ON labels
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'labels')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'labels', NEW._id);
+        END;
+CREATE TRIGGER lid_chat_state_delete_for_backup_changes_trigger
+        AFTER DELETE ON lid_chat_state
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'lid_chat_state')
+  AND
+  (table_row_id = OLD.jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'lid_chat_state', OLD.jid_row_id);
+        END;
+CREATE TRIGGER lid_chat_state_insert_for_backup_changes_trigger
+        AFTER INSERT ON lid_chat_state
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'lid_chat_state')
+  AND
+  (table_row_id = NEW.jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'lid_chat_state', NEW.jid_row_id);
+        END;
+CREATE TRIGGER lid_chat_state_update_for_backup_changes_trigger
+        AFTER UPDATE ON lid_chat_state
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'lid_chat_state')
+  AND
+  (table_row_id = NEW.jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'lid_chat_state', NEW.jid_row_id);
+        END;
+CREATE TRIGGER lid_display_name_delete_for_backup_changes_trigger
+        AFTER DELETE ON lid_display_name
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'lid_display_name')
+  AND
+  (table_row_id = OLD.lid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'lid_display_name', OLD.lid_row_id);
+        END;
+CREATE TRIGGER lid_display_name_insert_for_backup_changes_trigger
+        AFTER INSERT ON lid_display_name
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'lid_display_name')
+  AND
+  (table_row_id = NEW.lid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'lid_display_name', NEW.lid_row_id);
+        END;
+CREATE TRIGGER lid_display_name_update_for_backup_changes_trigger
+        AFTER UPDATE ON lid_display_name
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'lid_display_name')
+  AND
+  (table_row_id = NEW.lid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'lid_display_name', NEW.lid_row_id);
+        END;
+CREATE TRIGGER media_refs_delete_for_backup_changes_trigger
+        AFTER DELETE ON media_refs
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'media_refs')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'media_refs', OLD._id);
+        END;
+CREATE TRIGGER media_refs_insert_for_backup_changes_trigger
+        AFTER INSERT ON media_refs
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'media_refs')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'media_refs', NEW._id);
+        END;
+CREATE TRIGGER media_refs_update_for_backup_changes_trigger
+        AFTER UPDATE ON media_refs
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'media_refs')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'media_refs', NEW._id);
+        END;
+CREATE TRIGGER message_add_on_bd_for_message_add_on_event_response_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_event_response WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_add_on_bd_for_message_add_on_keep_in_chat_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_keep_in_chat WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_add_on_bd_for_message_add_on_pin_in_chat_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_pin_in_chat WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_add_on_bd_for_message_add_on_poll_vote_selected_option_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_poll_vote_selected_option WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_add_on_bd_for_message_add_on_poll_vote_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_poll_vote WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_add_on_bd_for_message_add_on_reaction_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_reaction WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_add_on_bd_for_message_add_on_receipt_device_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_receipt_device WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_add_on_bd_for_message_add_on_scheduled_call_edit_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_scheduled_call_edit WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_add_on_delete_for_backup_changes_trigger
+      AFTER DELETE ON message_add_on
+      BEGIN
+        DELETE FROM 
+  backup_changes
+WHERE
+  (table_name = 'message') 
+  AND
+  (table_row_id = OLD.parent_message_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+        INSERT INTO 
+  backup_changes (operation, table_name, table_row_id)
+VALUES ('DELETE', 'message', OLD.parent_message_row_id);
+      END;
+CREATE TRIGGER message_add_on_insert_for_backup_changes_trigger
+      AFTER INSERT ON message_add_on
+      BEGIN
+        DELETE FROM 
+  backup_changes
+WHERE
+  (table_name = 'message') 
+  AND
+  (table_row_id = NEW.parent_message_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+        INSERT INTO 
+  backup_changes (operation, table_name, table_row_id)
+VALUES ('INSERT', 'message', NEW.parent_message_row_id);
+      END;
+CREATE TRIGGER message_add_on_receipt_device_delete_for_backup_changes_trigger
+        AFTER DELETE ON message_add_on_receipt_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'message_add_on_receipt_device')
+  AND
+  (table_row_id = OLD.receipt_device_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'message_add_on_receipt_device', OLD.receipt_device_id);
+        END;
+CREATE TRIGGER message_add_on_receipt_device_insert_for_backup_changes_trigger
+        AFTER INSERT ON message_add_on_receipt_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'message_add_on_receipt_device')
+  AND
+  (table_row_id = NEW.receipt_device_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'message_add_on_receipt_device', NEW.receipt_device_id);
+        END;
+CREATE TRIGGER message_add_on_receipt_device_update_for_backup_changes_trigger
+        AFTER UPDATE ON message_add_on_receipt_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'message_add_on_receipt_device')
+  AND
+  (table_row_id = NEW.receipt_device_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'message_add_on_receipt_device', NEW.receipt_device_id);
+        END;
+CREATE TRIGGER message_add_on_update_for_backup_changes_trigger
+      AFTER UPDATE ON message_add_on
+      BEGIN
+        DELETE FROM 
+  backup_changes
+WHERE
+  (table_name = 'message') 
+  AND
+  (table_row_id = NEW.parent_message_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+        INSERT INTO 
+  backup_changes (operation, table_name, table_row_id)
+VALUES ('UPDATE', 'message', NEW.parent_message_row_id);
+      END;
+CREATE TRIGGER message_bd_for_addon_message_media_trigger BEFORE DELETE ON message BEGIN DELETE FROM addon_message_media WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_agent_message_attribution_trigger BEFORE DELETE ON message BEGIN DELETE FROM agent_message_attribution WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_audio_data_trigger BEFORE DELETE ON message BEGIN DELETE FROM audio_data WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_bot_memory_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM bot_memory_metadata WHERE memory_annotated_user_message_key_id = old.key_id OR message_row_id = old._id; END;
+CREATE TRIGGER message_bd_for_bot_message_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM bot_message_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_bot_message_prompts_trigger BEFORE DELETE ON message BEGIN DELETE FROM bot_message_prompts WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_bot_plugin_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM bot_plugin_metadata WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_business_message_forward_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM business_message_forward_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_child_message_association_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_association WHERE child_message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_data_sharing_disclosure_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM data_sharing_disclosure_metadata WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_forwarded_newsletter_message_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM forwarded_newsletter_message_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_add_on_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_add_on WHERE parent_message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_album_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_album WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_bcall_session_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_bcall_session WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_bot_feedback_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_bot_feedback WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_broadcast_ephemeral_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_broadcast_ephemeral WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_call_log_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_call_log WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_comment_parent_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_comment_parent WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_comment_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_comment WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_details_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_details WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_edit_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_edit_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_ephemeral_setting_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_ephemeral_setting WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_ephemeral_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_ephemeral WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_event_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_event WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_external_ad_content_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_external_ad_content WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_fixed_content_placeholder_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_fixed_content_placeholder WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_forwarded_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_forwarded WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_ftsv2_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_ftsv2 WHERE docid=old._id; END;
+CREATE TRIGGER message_bd_for_message_future_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_future WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_group_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_group_invite WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_link_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_link WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_location_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_location WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_logging_funnel_id_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_logging_funnel_id WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_media_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_media WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_mentions_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_mentions WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_newsletter_admin_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_newsletter_admin_invite WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_newsletter_fts_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_newsletter_fts WHERE docid=old._id; END;
+CREATE TRIGGER message_bd_for_message_order_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_order WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_parent_association_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_parent_association WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_payment_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_payment_invite WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_poll_option_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_poll_option WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_poll_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_poll WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_privacy_state_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_privacy_state WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_product_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_product WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_quoted_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_quoted WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_rating_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_rating WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_revoked_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_revoked WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_scheduled_call_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_scheduled_call WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_secret_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_secret WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_send_count_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_send_count WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_span_indices_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_span_indices WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_status_psa_campaign_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_status_psa_campaign WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_sticker_pack_stickers_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_sticker_pack_stickers WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_sticker_pack_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_sticker_pack WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_streaming_sidecar_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_streaming_sidecar WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_system_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_system WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_template_button_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_template_button WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_template_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_template WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_text_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_text WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_thumbnail_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_thumbnail WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_translation_request_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_translation_request WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_ui_elements_reply_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_ui_elements_reply WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_ui_elements_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_ui_elements WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_vcard_jid_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_vcard_jid WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_vcard_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_vcard WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_view_once_media_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_view_once_media WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_messages_hydrated_four_row_template_trigger BEFORE DELETE ON message BEGIN DELETE FROM messages_hydrated_four_row_template WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_missed_call_logs_trigger BEFORE DELETE ON message BEGIN DELETE FROM missed_call_logs WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_mms_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM mms_metadata WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_mms_thumbnail_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM mms_thumbnail_metadata WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_newsletter_message_enforcements_trigger BEFORE DELETE ON message BEGIN DELETE FROM newsletter_message_enforcements WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_newsletter_message_reaction_trigger BEFORE DELETE ON message BEGIN DELETE FROM newsletter_message_reaction WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_newsletter_message_trigger BEFORE DELETE ON message BEGIN DELETE FROM newsletter_message WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_parent_message_association_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_association WHERE parent_message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_played_self_receipt_trigger BEFORE DELETE ON message BEGIN DELETE FROM played_self_receipt WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_premium_message_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM premium_message_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_receipt_device_trigger BEFORE DELETE ON message BEGIN DELETE FROM receipt_device WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_receipt_user_trigger BEFORE DELETE ON message BEGIN DELETE FROM receipt_user WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_reporting_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM reporting_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_scheduled_reminder_message_trigger BEFORE DELETE ON message BEGIN DELETE FROM scheduled_reminder_message WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_status_crossposting_trigger BEFORE DELETE ON message BEGIN DELETE FROM status_crossposting WHERE status_message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_status_crossposting_v3_trigger BEFORE DELETE ON message BEGIN DELETE FROM status_crossposting_v3 WHERE status_message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_status_message_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM status_message_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_suggest_as_you_type_trigger BEFORE DELETE ON message BEGIN DELETE FROM suggest_as_you_type WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_suggested_replies_trigger BEFORE DELETE ON message BEGIN DELETE FROM suggested_replies WHERE message_row_id=old._id OR customer_message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_transcription_segment_trigger BEFORE DELETE ON message BEGIN DELETE FROM transcription_segment WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_delete_for_backup_changes_trigger
+        AFTER DELETE ON message
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'message')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'message', OLD._id);
+        END;
+CREATE TRIGGER message_insert_for_backup_changes_trigger
+        AFTER INSERT ON message
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'message')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'message', NEW._id);
+        END;
+CREATE TRIGGER message_media_bd_for_media_processed_video_trigger BEFORE DELETE ON message_media BEGIN DELETE FROM media_processed_video WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_media_bd_for_message_media_interactive_annotation_trigger BEFORE DELETE ON message_media BEGIN DELETE FROM message_media_interactive_annotation WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_media_bd_for_message_media_vcard_count_trigger BEFORE DELETE ON message_media BEGIN DELETE FROM message_media_vcard_count WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_media_interactive_annotation_bd_for_message_media_interactive_annotation_embedded_music_trigger BEFORE DELETE ON message_media_interactive_annotation BEGIN DELETE FROM message_media_interactive_annotation_embedded_music WHERE message_media_interactive_annotation_row_id=old._id; END;
+CREATE TRIGGER message_media_interactive_annotation_bd_for_message_media_interactive_annotation_vertex_trigger BEFORE DELETE ON message_media_interactive_annotation BEGIN DELETE FROM message_media_interactive_annotation_vertex WHERE message_media_interactive_annotation_row_id=old._id; END;
+CREATE TRIGGER message_poll_bd_for_message_poll_option_trigger BEFORE DELETE ON message_poll BEGIN DELETE FROM message_poll_option WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_blank_reply_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_blank_reply WHERE message_row_id = old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_call_log_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_call_log WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_group_invite_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_group_invite WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_location_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_location WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_media_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_media WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_mentions_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_mentions WHERE message_row_id = old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_order_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_order WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_payment_invite_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_payment_invite WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_product_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_product WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_text_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_text WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_ui_elements_reply_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_ui_elements_reply WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_ui_elements_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_ui_elements WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_vcard_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_vcard WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_bd_for_message_template_quoted_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_template_quoted WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_payment_status_update_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_payment_status_update WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_payment_transaction_reminder_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_payment_transaction_reminder WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_payment_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_payment WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_biz_callback_disabled_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_biz_callback_disabled WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_biz_callback_enabled_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_biz_callback_enabled WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_block_contact_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_block_contact WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_business_state_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_business_state WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_chat_assignment_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_chat_assignment WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_chat_participant_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_chat_participant WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_community_link_changed_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_community_link_changed WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_device_change_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_device_change WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_ephemeral_setting_not_applied_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_ephemeral_setting_not_applied WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_event_updates_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_event_updates WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_group_auto_restrict_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_group_auto_restrict WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_group_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_group WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_group_with_parent_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_group_with_parent WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_initial_privacy_provider_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_initial_privacy_provider WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_linked_group_call_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_linked_group_call WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_number_change_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_number_change WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_opt_out_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_opt_out WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_payment_invite_setup_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_payment_invite_setup WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_photo_change_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_photo_change WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_reminder_sent_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_reminder_sent WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_reminder_setup_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_reminder_setup WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_scheduled_call_start_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_scheduled_call_start WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_sibling_group_link_change_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_sibling_group_link_change WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_value_change_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_value_change WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_system_bd_for_message_system_with_group_nodes_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_with_group_nodes WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_template_bd_for_message_template_button_trigger BEFORE DELETE ON message_template BEGIN DELETE FROM message_template_button WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_update_for_backup_changes_trigger
+        AFTER UPDATE ON message
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'message')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'message', NEW._id);
+        END;
+CREATE TRIGGER message_vcard_bd_for_message_vcard_jid_trigger BEFORE DELETE ON message_vcard BEGIN DELETE FROM message_vcard_jid WHERE vcard_row_id=old._id; END;
+CREATE TRIGGER missed_call_logs_bd_for_missed_call_log_participant_trigger BEFORE DELETE ON missed_call_logs BEGIN DELETE FROM missed_call_log_participant WHERE call_logs_row_id=old._id; END;
+CREATE TRIGGER newsletter_bd_for_newsletter_subscribers_trigger BEFORE DELETE ON newsletter BEGIN DELETE FROM newsletter_subscribers WHERE chat_row_id=old.chat_row_id; END;
+CREATE TRIGGER parent_group_participants_delete_for_backup_changes_trigger
+        AFTER DELETE ON parent_group_participants
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'parent_group_participants')
+  AND
+  (table_row_id = OLD.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'parent_group_participants', OLD.rowid);
+        END;
+CREATE TRIGGER parent_group_participants_insert_for_backup_changes_trigger
+        AFTER INSERT ON parent_group_participants
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'parent_group_participants')
+  AND
+  (table_row_id = NEW.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'parent_group_participants', NEW.rowid);
+        END;
+CREATE TRIGGER parent_group_participants_update_for_backup_changes_trigger
+        AFTER UPDATE ON parent_group_participants
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'parent_group_participants')
+  AND
+  (table_row_id = NEW.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'parent_group_participants', NEW.rowid);
+        END;
+CREATE TRIGGER pay_transaction_delete_for_backup_changes_trigger
+        AFTER DELETE ON pay_transaction
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'pay_transaction')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'pay_transaction', OLD._id);
+        END;
+CREATE TRIGGER pay_transaction_insert_for_backup_changes_trigger
+        AFTER INSERT ON pay_transaction
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'pay_transaction')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'pay_transaction', NEW._id);
+        END;
+CREATE TRIGGER pay_transaction_update_for_backup_changes_trigger
+        AFTER UPDATE ON pay_transaction
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'pay_transaction')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'pay_transaction', NEW._id);
+        END;
+CREATE TRIGGER payment_background_bd_for_payment_background_order_trigger BEFORE DELETE ON payment_background BEGIN DELETE FROM payment_background_order WHERE background_id=old.background_id; END;
+CREATE TRIGGER payment_background_delete_for_backup_changes_trigger
+        AFTER DELETE ON payment_background
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'payment_background')
+  AND
+  (table_row_id = OLD.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'payment_background', OLD.rowid);
+        END;
+CREATE TRIGGER payment_background_insert_for_backup_changes_trigger
+        AFTER INSERT ON payment_background
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'payment_background')
+  AND
+  (table_row_id = NEW.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'payment_background', NEW.rowid);
+        END;
+CREATE TRIGGER payment_background_order_delete_for_backup_changes_trigger
+        AFTER DELETE ON payment_background_order
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'payment_background_order')
+  AND
+  (table_row_id = OLD.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'payment_background_order', OLD.rowid);
+        END;
+CREATE TRIGGER payment_background_order_insert_for_backup_changes_trigger
+        AFTER INSERT ON payment_background_order
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'payment_background_order')
+  AND
+  (table_row_id = NEW.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'payment_background_order', NEW.rowid);
+        END;
+CREATE TRIGGER payment_background_order_update_for_backup_changes_trigger
+        AFTER UPDATE ON payment_background_order
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'payment_background_order')
+  AND
+  (table_row_id = NEW.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'payment_background_order', NEW.rowid);
+        END;
+CREATE TRIGGER payment_background_update_for_backup_changes_trigger
+        AFTER UPDATE ON payment_background
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'payment_background')
+  AND
+  (table_row_id = NEW.rowid)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'payment_background', NEW.rowid);
+        END;
+CREATE TRIGGER played_self_receipt_delete_for_backup_changes_trigger
+        AFTER DELETE ON played_self_receipt
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'played_self_receipt')
+  AND
+  (table_row_id = OLD.message_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'played_self_receipt', OLD.message_row_id);
+        END;
+CREATE TRIGGER played_self_receipt_insert_for_backup_changes_trigger
+        AFTER INSERT ON played_self_receipt
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'played_self_receipt')
+  AND
+  (table_row_id = NEW.message_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'played_self_receipt', NEW.message_row_id);
+        END;
+CREATE TRIGGER played_self_receipt_update_for_backup_changes_trigger
+        AFTER UPDATE ON played_self_receipt
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'played_self_receipt')
+  AND
+  (table_row_id = NEW.message_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'played_self_receipt', NEW.message_row_id);
+        END;
+CREATE TRIGGER primary_device_version_delete_for_backup_changes_trigger
+        AFTER DELETE ON primary_device_version
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'primary_device_version')
+  AND
+  (table_row_id = OLD.user_jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'primary_device_version', OLD.user_jid_row_id);
+        END;
+CREATE TRIGGER primary_device_version_insert_for_backup_changes_trigger
+        AFTER INSERT ON primary_device_version
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'primary_device_version')
+  AND
+  (table_row_id = NEW.user_jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'primary_device_version', NEW.user_jid_row_id);
+        END;
+CREATE TRIGGER primary_device_version_update_for_backup_changes_trigger
+        AFTER UPDATE ON primary_device_version
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'primary_device_version')
+  AND
+  (table_row_id = NEW.user_jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'primary_device_version', NEW.user_jid_row_id);
+        END;
+CREATE TRIGGER props_delete_for_backup_changes_trigger
+        AFTER DELETE ON props
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'props')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'props', OLD._id);
+        END;
+CREATE TRIGGER props_insert_for_backup_changes_trigger
+        AFTER INSERT ON props
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'props')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'props', NEW._id);
+        END;
+CREATE TRIGGER props_update_for_backup_changes_trigger
+        AFTER UPDATE ON props
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'props')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'props', NEW._id);
+        END;
+CREATE TRIGGER quick_replies_bd_for_quick_reply_attachments_trigger BEFORE DELETE ON quick_replies BEGIN DELETE FROM quick_reply_attachments WHERE quick_reply_id=old._id; END;
+CREATE TRIGGER quick_replies_bd_for_quick_reply_keywords_trigger BEFORE DELETE ON quick_replies BEGIN DELETE FROM quick_reply_keywords WHERE quick_reply_id=old._id; END;
+CREATE TRIGGER quick_replies_bd_for_quick_reply_usage_trigger BEFORE DELETE ON quick_replies BEGIN DELETE FROM quick_reply_usage WHERE quick_reply_id=old._id; END;
+CREATE TRIGGER quick_replies_delete_for_backup_changes_trigger
+        AFTER DELETE ON quick_replies
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_replies')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'quick_replies', OLD._id);
+        END;
+CREATE TRIGGER quick_replies_insert_for_backup_changes_trigger
+        AFTER INSERT ON quick_replies
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_replies')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'quick_replies', NEW._id);
+        END;
+CREATE TRIGGER quick_replies_update_for_backup_changes_trigger
+        AFTER UPDATE ON quick_replies
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_replies')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'quick_replies', NEW._id);
+        END;
+CREATE TRIGGER quick_reply_attachments_delete_for_backup_changes_trigger
+        AFTER DELETE ON quick_reply_attachments
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_reply_attachments')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'quick_reply_attachments', OLD._id);
+        END;
+CREATE TRIGGER quick_reply_attachments_insert_for_backup_changes_trigger
+        AFTER INSERT ON quick_reply_attachments
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_reply_attachments')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'quick_reply_attachments', NEW._id);
+        END;
+CREATE TRIGGER quick_reply_attachments_update_for_backup_changes_trigger
+        AFTER UPDATE ON quick_reply_attachments
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_reply_attachments')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'quick_reply_attachments', NEW._id);
+        END;
+CREATE TRIGGER quick_reply_keywords_delete_for_backup_changes_trigger
+        AFTER DELETE ON quick_reply_keywords
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_reply_keywords')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'quick_reply_keywords', OLD._id);
+        END;
+CREATE TRIGGER quick_reply_keywords_insert_for_backup_changes_trigger
+        AFTER INSERT ON quick_reply_keywords
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_reply_keywords')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'quick_reply_keywords', NEW._id);
+        END;
+CREATE TRIGGER quick_reply_keywords_update_for_backup_changes_trigger
+        AFTER UPDATE ON quick_reply_keywords
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_reply_keywords')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'quick_reply_keywords', NEW._id);
+        END;
+CREATE TRIGGER quick_reply_usage_delete_for_backup_changes_trigger
+        AFTER DELETE ON quick_reply_usage
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_reply_usage')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'quick_reply_usage', OLD._id);
+        END;
+CREATE TRIGGER quick_reply_usage_insert_for_backup_changes_trigger
+        AFTER INSERT ON quick_reply_usage
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_reply_usage')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'quick_reply_usage', NEW._id);
+        END;
+CREATE TRIGGER quick_reply_usage_update_for_backup_changes_trigger
+        AFTER UPDATE ON quick_reply_usage
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'quick_reply_usage')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'quick_reply_usage', NEW._id);
+        END;
+CREATE TRIGGER receipt_device_delete_for_backup_changes_trigger
+        AFTER DELETE ON receipt_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'receipt_device')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'receipt_device', OLD._id);
+        END;
+CREATE TRIGGER receipt_device_insert_for_backup_changes_trigger
+        AFTER INSERT ON receipt_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'receipt_device')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'receipt_device', NEW._id);
+        END;
+CREATE TRIGGER receipt_device_update_for_backup_changes_trigger
+        AFTER UPDATE ON receipt_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'receipt_device')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'receipt_device', NEW._id);
+        END;
+CREATE TRIGGER receipt_orphaned_delete_for_backup_changes_trigger
+        AFTER DELETE ON receipt_orphaned
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'receipt_orphaned')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'receipt_orphaned', OLD._id);
+        END;
+CREATE TRIGGER receipt_orphaned_insert_for_backup_changes_trigger
+        AFTER INSERT ON receipt_orphaned
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'receipt_orphaned')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'receipt_orphaned', NEW._id);
+        END;
+CREATE TRIGGER receipt_orphaned_update_for_backup_changes_trigger
+        AFTER UPDATE ON receipt_orphaned
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'receipt_orphaned')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'receipt_orphaned', NEW._id);
+        END;
+CREATE TRIGGER receipt_user_delete_for_backup_changes_trigger
+        AFTER DELETE ON receipt_user
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'receipt_user')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'receipt_user', OLD._id);
+        END;
+CREATE TRIGGER receipt_user_insert_for_backup_changes_trigger
+        AFTER INSERT ON receipt_user
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'receipt_user')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'receipt_user', NEW._id);
+        END;
+CREATE TRIGGER receipt_user_update_for_backup_changes_trigger
+        AFTER UPDATE ON receipt_user
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'receipt_user')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'receipt_user', NEW._id);
+        END;
+CREATE TRIGGER reporting_info_bd_for_reporting_info_content_trigger BEFORE DELETE ON reporting_info BEGIN DELETE FROM reporting_info_content WHERE reporting_info_row_id=old._id; END;
+CREATE TRIGGER suggest_as_you_type_delete_oldest_trigger BEFORE INSERT ON suggest_as_you_type FOR EACH ROW WHEN (SELECT COUNT(*) FROM suggest_as_you_type ) > 2000 BEGIN DELETE FROM suggest_as_you_type WHERE message_row_id = (SELECT MIN(message_row_id) FROM suggest_as_you_type); END;
+CREATE TRIGGER suggested_replies_delete_oldest_trigger BEFORE INSERT ON suggested_replies FOR EACH ROW WHEN (SELECT COUNT(*) FROM suggested_replies ) > 2000 BEGIN DELETE FROM suggested_replies WHERE message_row_id = (SELECT MIN(message_row_id) FROM suggested_replies); END;
+CREATE TRIGGER user_device_delete_for_backup_changes_trigger
+        AFTER DELETE ON user_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'user_device')
+  AND
+  (table_row_id = OLD._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'user_device', OLD._id);
+        END;
+CREATE TRIGGER user_device_info_delete_for_backup_changes_trigger
+        AFTER DELETE ON user_device_info
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'user_device_info')
+  AND
+  (table_row_id = OLD.user_jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('DELETE', 'user_device_info', OLD.user_jid_row_id);
+        END;
+CREATE TRIGGER user_device_info_insert_for_backup_changes_trigger
+        AFTER INSERT ON user_device_info
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'user_device_info')
+  AND
+  (table_row_id = NEW.user_jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'user_device_info', NEW.user_jid_row_id);
+        END;
+CREATE TRIGGER user_device_info_update_for_backup_changes_trigger
+        AFTER UPDATE ON user_device_info
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'user_device_info')
+  AND
+  (table_row_id = NEW.user_jid_row_id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'user_device_info', NEW.user_jid_row_id);
+        END;
+CREATE TRIGGER user_device_insert_for_backup_changes_trigger
+        AFTER INSERT ON user_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'user_device')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('INSERT', 'user_device', NEW._id);
+        END;
+CREATE TRIGGER user_device_update_for_backup_changes_trigger
+        AFTER UPDATE ON user_device
+        BEGIN
+          DELETE FROM backup_changes
+WHERE
+  (table_name = 'user_device')
+  AND
+  (table_row_id = NEW._id)
+  AND
+  (
+    (operation = 'INSERT')
+    OR
+    (operation = 'UPDATE')
+  );
+          INSERT INTO backup_changes (operation, table_name, table_row_id)
+VALUES('UPDATE', 'user_device', NEW._id);
+        END;
 CREATE INDEX message_system_chat_participant_index ON message_system_chat_participant (message_row_id);
 CREATE UNIQUE INDEX message_media_interactive_annotation_vertex_index ON message_media_interactive_annotation_vertex (message_media_interactive_annotation_row_id, sort_order);
 CREATE INDEX message_span_indices_message_and_span_index ON 
@@ -375,9 +2691,18 @@ CREATE TABLE ai_rich_response_message_additional_info(message_row_id INTEGER PRI
 CREATE TABLE url_tracking_map_element(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,original_url TEXT,consented_users_url TEXT,unconsented_users_url TEXT,card_index INTEGER);
 CREATE TABLE support_citation_metadata(message_row_id INTEGER PRIMARY KEY,help_article_citations TEXT);
 CREATE TABLE ai_rich_response_message_core_info(message_row_id INTEGER PRIMARY KEY,ai_rich_response_message_type INTEGER NOT NULL DEFAULT 0,ai_rich_response_submessage_types TEXT NOT NULL DEFAULT '',additional_table_mask INTEGER NOT NULL DEFAULT 0,ai_rich_response_core_blob BLOB, planning_status INTEGER, foa_native_data BLOB, foa_native_mutation BLOB);
+CREATE TRIGGER message_bd_for_ai_rich_response_message_additional_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM ai_rich_response_message_additional_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_ai_rich_response_message_core_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM ai_rich_response_message_core_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_support_citation_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM support_citation_metadata WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_url_tracking_map_element_trigger BEFORE DELETE ON message BEGIN DELETE FROM url_tracking_map_element WHERE message_row_id=old._id; END;
 CREATE INDEX url_tracking_map_element_index ON url_tracking_map_element (message_row_id);
 CREATE TABLE group_participant_label_metadata(group_participant_user_row_id INTEGER PRIMARY KEY,edit_time DATETIME NOT NULL);
 CREATE TABLE message_system_biz_per_customer_3pd_data_share_state(message_row_id INTEGER PRIMARY KEY,data_sharing_enabled BOOLEAN);
+CREATE TRIGGER group_participant_label_metadata_delete_for_backup_changes_trigger AFTER DELETE ON group_participant_label_metadata BEGIN DELETE FROM backup_changes WHERE (table_name = 'group_participant_label_metadata') AND (table_row_id = OLD.group_participant_user_row_id) AND ( (operation = 'INSERT') OR (operation = 'UPDATE') ); INSERT INTO backup_changes (operation, table_name, table_row_id) VALUES('DELETE', 'group_participant_label_metadata', OLD.group_participant_user_row_id); END;
+CREATE TRIGGER group_participant_label_metadata_insert_for_backup_changes_trigger AFTER INSERT ON group_participant_label_metadata BEGIN DELETE FROM backup_changes WHERE (table_name = 'group_participant_label_metadata') AND (table_row_id = NEW.group_participant_user_row_id) AND ( (operation = 'INSERT') OR (operation = 'UPDATE') ); INSERT INTO backup_changes (operation, table_name, table_row_id) VALUES('INSERT', 'group_participant_label_metadata', NEW.group_participant_user_row_id); END;
+CREATE TRIGGER group_participant_label_metadata_update_for_backup_changes_trigger AFTER UPDATE ON group_participant_label_metadata BEGIN DELETE FROM backup_changes WHERE (table_name = 'group_participant_label_metadata') AND (table_row_id = NEW.group_participant_user_row_id) AND ( (operation = 'INSERT') OR (operation = 'UPDATE') ); INSERT INTO backup_changes (operation, table_name, table_row_id) VALUES('UPDATE', 'group_participant_label_metadata', NEW.group_participant_user_row_id); END;
+CREATE TRIGGER jid_bd_for_jid_map_trigger BEFORE DELETE ON jid BEGIN DELETE FROM jid_map WHERE jid_row_id=old._id OR lid_row_id=old._id; END;
+CREATE TRIGGER message_system_bd_for_message_system_biz_per_customer_3pd_data_share_state_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_biz_per_customer_3pd_data_share_state WHERE message_row_id=old.message_row_id; END;
 CREATE TABLE message_system_username_change(message_row_id INTEGER PRIMARY KEY,user_jid INTEGER,old_username TEXT,new_username TEXT,display_name TEXT);
 CREATE INDEX joinable_call_log_phash_identifier_index 
             ON joinable_call_log (phash_identifier);
@@ -385,15 +2710,22 @@ CREATE TABLE message_system_lid_change(message_row_id INTEGER PRIMARY KEY,old_li
 CREATE UNIQUE INDEX chat_account_jid_row_id_unique_index
             ON chat (account_jid_row_id);
 CREATE TABLE ai_agentic_metadata(message_row_id INTEGER PRIMARY KEY,bot_progress_indicator_metadata BLOB);
+CREATE TRIGGER message_bd_for_ai_agentic_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM ai_agentic_metadata WHERE message_row_id=old._id; END;
 CREATE TABLE status_notification_info(message_row_id INTEGER PRIMARY KEY,response_status_row_id INTEGER NOT NULL,original_status_row_id INTEGER NOT NULL,type INTEGER NOT NULL);
 CREATE TABLE jid_user_metadata(jid_row_id INTEGER PRIMARY KEY NOT NULL,country_code TEXT);
+CREATE TRIGGER message_bd_for_status_notification_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM status_notification_info WHERE message_row_id = old._id; END;
 CREATE TABLE optimised_delivery_info(message_row_id INTEGER PRIMARY KEY,msg_disclosed_token TEXT,msg_undisclosed_token TEXT,msg_timestamp LONG UNIQUE,token_timestamp LONG,business_jid_row_id INTEGER NOT NULL, msg_timestamp_v2 INTEGER);
 CREATE TABLE payment_link_metadata(message_row_id INTEGER PRIMARY KEY,link_header_type INTEGER,cta_button_text TEXT, params_json TEXT);
+CREATE TRIGGER message_bd_for_payment_link_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM payment_link_metadata WHERE message_row_id=old._id; END;
 CREATE TABLE message_limit_sharing_setting(message_row_id INTEGER PRIMARY KEY,enabled INTEGER,trigger INTEGER);
 CREATE TABLE message_system_business_broadcast(message_row_id INTEGER PRIMARY KEY,broadcast_raw_jid STRING NOT NULL);
+CREATE TRIGGER message_bd_for_message_limit_sharing_setting_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_limit_sharing_setting WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_system_bd_for_message_system_business_broadcast_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_business_broadcast WHERE message_row_id=old.message_row_id; END;
 CREATE INDEX message_system_business_broadcast_raw_jid_index ON message_system_business_broadcast (broadcast_raw_jid);
 CREATE TABLE message_media_map(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,media_row_id INTEGER NOT NULL);
 CREATE TABLE extended_media_data(row_id INTEGER PRIMARY KEY AUTOINCREMENT,type INTEGER NOT NULL,direct_path TEXT,file_path TEXT,file_hash TEXT,file_size INTEGER,media_key BLOB,media_key_timestamp INTEGER,enc_file_hash TEXT,width INTEGER,height INTEGER,media_caption TEXT,transferred INTEGER, preview_path TEXT, external_url TEXT, mime_type TEXT, display_type INTEGER);
+CREATE TRIGGER message_bd_for_message_media_map_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_media_map WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_media_map_bd_for_extended_media_data_trigger BEFORE DELETE ON message_media_map BEGIN DELETE FROM extended_media_data WHERE row_id=old.media_row_id; END;
 CREATE INDEX extended_media_data_file_hash_index
             ON extended_media_data (
               file_hash
@@ -403,11 +2735,27 @@ CREATE INDEX message_media_map_chat_row_id_index ON message_media_map (chat_row_
 CREATE INDEX message_media_map_media_row_id_index ON message_media_map (media_row_id);
 CREATE TABLE group_history_metadata(message_row_id INTEGER PRIMARY KEY NOT NULL,history_receivers TEXT NOT NULL,first_message_timestamp_seconds INTEGER NOT NULL,message_count INTEGER NOT NULL);
 CREATE TABLE group_history_bundle(message_row_id INTEGER PRIMARY KEY NOT NULL,process_state INTEGER NOT NULL DEFAULT 0, send_state INTEGER NOT NULL DEFAULT 0);
+CREATE TRIGGER message_bd_for_group_history_bundle_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_bundle WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_group_history_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_metadata WHERE message_row_id=old._id; END;
+CREATE TRIGGER extended_media_data_bd_for_message_media_map_trigger BEFORE DELETE ON extended_media_data BEGIN DELETE FROM message_media_map WHERE media_row_id=old.row_id; END;
 CREATE TABLE message_question(message_row_id INTEGER PRIMARY KEY,response_count INTEGER DEFAULT 0, response_read_count INTEGER DEFAULT 0, is_enabled INTEGER DEFAULT 1);
 CREATE TABLE message_system_detected_outcomes_labeled_chat(message_row_id INTEGER PRIMARY KEY,predefined_id INTEGER);
 CREATE TABLE gap_enforcement_business_chat_thread_info_cache(business_chat_row_id INTEGER PRIMARY KEY NOT NULL,business_chat_is_mm_thread INTEGER, business_chat_thread_type INTEGER);
 CREATE TABLE thread_id(_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,chat_row_id INTEGER NOT NULL,from_me INTEGER NOT NULL,key_id TEXT NOT NULL,sender_jid_row_id INTEGER NOT NULL DEFAULT 0,thread_type INTEGER NOT NULL DEFAULT 0, pin_timestamp INTEGER, deleted INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE thread_messages(_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,thread_id INTEGER NOT NULL,message_row_id INTEGER NOT NULL);
+CREATE TRIGGER chat_bd_for_gap_enforcement_business_chat_thread_info_cache_trigger BEFORE DELETE ON chat BEGIN DELETE FROM gap_enforcement_business_chat_thread_info_cache WHERE OLD._id = business_chat_row_id; END;
+CREATE TRIGGER chat_bd_for_thread_id_trigger BEFORE DELETE ON chat BEGIN DELETE FROM thread_id WHERE chat_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_question_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_question WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_thread_messages_trigger BEFORE DELETE ON message BEGIN DELETE FROM thread_messages WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_system_bd_for_message_system_detected_outcomes_labeled_chat_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_detected_outcomes_labeled_chat WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER thread_messages_ad_thread_messages_delete_trigger
+            AFTER DELETE ON thread_messages
+            FOR EACH ROW
+            WHEN (SELECT COUNT(*) FROM thread_messages WHERE thread_id = old.thread_id) = 0
+            BEGIN
+                DELETE FROM thread_id
+                WHERE _id = old.thread_id;
+            END;
 CREATE INDEX thread_messages_thread_id_index
             ON thread_messages (
               thread_id
@@ -437,20 +2785,54 @@ CREATE INDEX thread_id_chat_row_id_and_thread_type_index
 CREATE TABLE group_history_bundle_association(message_row_id INTEGER PRIMARY KEY NOT NULL,bundle_message_row_id INTEGER NOT NULL, message_sort_id INTEGER, bundle_sender_jid_row_id INTEGER, bundle_message_key_id TEXT, bundle_message_key_from_me BOOLEAN, bundle_message_key_chat_row_id INTEGER);
 CREATE TABLE tee_message_info_table(message_row_id INTEGER PRIMARY KEY NOT NULL,message_interaction_type INTEGER,message_outgoing_status INTEGER,message_source INTEGER NOT NULL,message_replay_metadata BLOB);
 CREATE TABLE reminder(_id INTEGER PRIMARY KEY AUTOINCREMENT,reminder_id TEXT NOT NULL,message_row_id INTEGER,call_log_row_id INTEGER,surface INTEGER NOT NULL,timestamp DATETIME NOT NULL,notified INTEGER NOT NULL DEFAULT 0);
+CREATE TRIGGER message_bd_for_group_history_bundle_association_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_bundle_association WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_tee_message_info_table_trigger BEFORE DELETE ON message BEGIN DELETE FROM tee_message_info_table WHERE message_row_id=old._id; END;
+CREATE TRIGGER reminder_delete_for_backup_changes_trigger
+        AFTER DELETE ON reminder
+        BEGIN
+          DELETE FROM backup_changes WHERE (table_name = 'reminder') AND (table_row_id = OLD._id) AND ( (operation = 'INSERT') OR (operation = 'UPDATE') );
+          INSERT INTO backup_changes (operation, table_name, table_row_id) VALUES('DELETE', 'reminder', OLD._id);
+        END;
+CREATE TRIGGER reminder_insert_for_backup_changes_trigger
+        AFTER INSERT ON reminder
+        BEGIN
+          DELETE FROM backup_changes WHERE (table_name = 'reminder') AND (table_row_id = NEW._id) AND ( (operation = 'INSERT') OR (operation = 'UPDATE') );
+          INSERT INTO backup_changes (operation, table_name, table_row_id) VALUES('INSERT', 'reminder', NEW._id);
+        END;
+CREATE TRIGGER reminder_update_for_backup_changes_trigger
+        AFTER UPDATE ON reminder
+        BEGIN
+          DELETE FROM backup_changes WHERE (table_name = 'reminder') AND (table_row_id = NEW._id) AND ( (operation = 'INSERT') OR (operation = 'UPDATE') );
+          INSERT INTO backup_changes (operation, table_name, table_row_id) VALUES('UPDATE', 'reminder', NEW._id);
+        END;
 CREATE UNIQUE INDEX reminder_message_row_id_idx 
             ON reminder (message_row_id);
 CREATE UNIQUE INDEX reminder_call_log_row_id_idx 
             ON reminder (call_log_row_id);
 CREATE UNIQUE INDEX reminder_id_idx 
             ON reminder (reminder_id);
+CREATE TRIGGER group_participant_user_bd_for_group_participant_label_metadata_trigger BEFORE DELETE ON group_participant_user BEGIN DELETE FROM group_participant_label_metadata WHERE group_participant_user_row_id=old._id; END;
 CREATE TABLE status_attribution(_id INTEGER PRIMARY KEY AUTOINCREMENT,status_row_id INTEGER NOT NULL,type INTEGER NOT NULL,content BLOB);
 CREATE TABLE message_add_on_status_question_answer(message_add_on_row_id INTEGER PRIMARY KEY,answer TEXT);
+CREATE TRIGGER message_add_on_bd_for_message_add_on_status_question_answer_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_status_question_answer WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_status_attribution_trigger BEFORE DELETE ON message BEGIN DELETE FROM status_attribution WHERE status_row_id=old._id; END;
 CREATE INDEX status_attribution_status_row_id_index
             ON status_attribution (status_row_id);
 CREATE TABLE message_system_privacy(message_row_id INTEGER PRIMARY KEY,is_transition INTEGER,message_privacy_type INTEGER);
 CREATE TABLE message_add_on_question_response(message_add_on_row_id INTEGER PRIMARY KEY,response TEXT);
+CREATE TRIGGER message_add_on_bd_for_message_add_on_question_response_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_question_response WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_system_bd_for_message_system_privacy_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_privacy WHERE message_row_id=old.message_row_id; END;
 CREATE TABLE question_reply_quoted_message(message_row_id INTEGER PRIMARY KEY,question_text TEXT,response_text TEXT,server_question_id INTEGER, question_message_type INTEGER);
+CREATE TRIGGER message_bd_for_question_reply_quoted_message_trigger BEFORE DELETE ON message BEGIN DELETE FROM question_reply_quoted_message WHERE message_row_id=old._id; END;
 CREATE TABLE integrity_chat_info(chat_row_id INTEGER PRIMARY KEY,is_reach_out INTEGER, is_eligible_for_link_friction_banner INTEGER);
+CREATE TRIGGER chat_bd_for_integrity_chat_info_trigger
+            BEFORE DELETE ON chat
+            BEGIN
+              DELETE FROM
+                integrity_chat_info
+              WHERE
+                chat_row_id=old._id;
+            END;
 CREATE TABLE frequent_forward_chat(chat_row_id INTEGER PRIMARY KEY,num_forward INTEGER,last_forward_timestamp INTEGER, last_scan INTEGER);
 CREATE INDEX forward_frequency_index 
             ON frequent_forward_chat(num_forward);
@@ -458,12 +2840,141 @@ CREATE INDEX last_timestamp_index
             ON frequent_forward_chat(last_forward_timestamp);
 CREATE TABLE status_info_ranking_signals(chat_jid TEXT PRIMARY KEY NOT NULL,first_status_timestamp INTEGER NOT NULL DEFAULT 0,last_expired_status_timestamp INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE status_quoted_message(message_row_id INTEGER PRIMARY KEY,description_text TEXT NOT NULL,thumbnail BLOB,type INTEGER,original_status_key_id TEXT,original_status_is_from_me INTEGER,original_status_chat_id TEXT,original_status_sender_id TEXT,add_on_key_id TEXT,add_on_is_from_me INTEGER,add_on_chat_id TEXT,add_on_sender_id TEXT);
+CREATE TRIGGER jid_map_delete_for_backup_changes_trigger
+        AFTER DELETE ON jid_map
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'jid_map')
+          AND
+          (table_row_id = OLD.lid_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'jid_map', OLD.lid_row_id)
+      ;
+        END;
+CREATE TRIGGER jid_map_insert_for_backup_changes_trigger
+        AFTER INSERT ON jid_map
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'jid_map')
+          AND
+          (table_row_id = NEW.lid_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'jid_map', NEW.lid_row_id)
+      ;
+        END;
+CREATE TRIGGER jid_map_update_for_backup_changes_trigger
+        AFTER UPDATE ON jid_map
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'jid_map')
+          AND
+          (table_row_id = NEW.lid_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'jid_map', NEW.lid_row_id)
+      ;
+        END;
+CREATE TRIGGER jid_user_metadata_delete_for_backup_changes_trigger
+        AFTER DELETE ON jid_user_metadata
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'jid_user_metadata')
+          AND
+          (table_row_id = OLD.jid_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'jid_user_metadata', OLD.jid_row_id)
+      ;
+        END;
+CREATE TRIGGER jid_user_metadata_insert_for_backup_changes_trigger
+        AFTER INSERT ON jid_user_metadata
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'jid_user_metadata')
+          AND
+          (table_row_id = NEW.jid_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'jid_user_metadata', NEW.jid_row_id)
+      ;
+        END;
+CREATE TRIGGER jid_user_metadata_update_for_backup_changes_trigger
+        AFTER UPDATE ON jid_user_metadata
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'jid_user_metadata')
+          AND
+          (table_row_id = NEW.jid_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'jid_user_metadata', NEW.jid_row_id)
+      ;
+        END;
 CREATE INDEX last_scan_index 
           ON 
               frequent_forward_chat(last_scan);
 CREATE TABLE message_add_on_status_sticker_interaction(message_add_on_row_id INTEGER PRIMARY KEY,sticker_key TEXT,type INTEGER);
 CREATE TABLE ai_thread_info(thread_id_row_id INTEGER PRIMARY KEY,title TEXT,creation_ts INTEGER NOT NULL,variant INTEGER NOT NULL DEFAULT 1,last_thread_messages_row_id INTEGER,last_message_timestamp INTEGER, title_source INTEGER, unseen_message_count INTEGER, origin_chat_row_id INTEGER);
 CREATE TABLE message_inline_video_metadata(message_row_id INTEGER PRIMARY KEY NOT NULL,video_content_url TEXT NOT NULL,is_muted INTEGER NOT NULL DEFAULT 0, caption TEXT);
+CREATE TRIGGER message_add_on_bd_for_message_add_on_status_sticker_interaction_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_status_sticker_interaction WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_inline_video_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_inline_video_metadata WHERE message_row_id=old._id; END;
+CREATE TRIGGER thread_id_bd_for_ai_thread_info_trigger BEFORE DELETE ON thread_id BEGIN DELETE FROM ai_thread_info WHERE thread_id_row_id=old._id; END;
 CREATE INDEX group_history_bundle_association_bundle_message_key_index 
             ON group_history_bundle_association (bundle_message_key_id);
 CREATE INDEX ai_thread_info_last_message_timestamp_index
@@ -479,21 +2990,34 @@ CREATE INDEX is_group_status_index
             ON status_message_info (is_group_status);
 CREATE TABLE payment_extended_metadata(message_row_id INTEGER PRIMARY KEY,platform TEXT,type INTEGER,message_params_json TEXT);
 CREATE TABLE bot_message_sharing_info(message_row_id INTEGER PRIMARY KEY,message_id TEXT,bot_entry_point_origin INTEGER,forward_score INTEGER NOT NULL DEFAULT 0);
+CREATE TRIGGER message_bd_for_bot_message_sharing_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM bot_message_sharing_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_payment_extended_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM payment_extended_metadata WHERE message_row_id=old._id; END;
 CREATE INDEX bot_message_sharing_info_message_id_index 
         ON bot_message_sharing_info (message_id);
 CREATE TABLE integrity_deleted_chat_message_count(id INTEGER PRIMARY KEY AUTOINCREMENT,lid TEXT NOT NULL DEFAULT '',messages_receive_date TEXT NOT NULL DEFAULT '',messages_count INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE integrity_deleted_chat_metadata(id INTEGER PRIMARY KEY AUTOINCREMENT,lid TEXT NOT NULL DEFAULT '',chat_type INTEGER NOT NULL DEFAULT 1,is_first_reach_out INTEGER NOT NULL DEFAULT 0,chat_creation_timestamp INTEGER NOT NULL DEFAULT 0,last_incoming_message_timestamp INTEGER NOT NULL DEFAULT 0,lidHash TEXT NOT NULL DEFAULT '');
 CREATE TABLE message_newsletter_follower_invite(message_row_id INTEGER PRIMARY KEY,newsletter_jid_row_id INTEGER NOT NULL,newsletter_name TEXT NOT NULL);
+CREATE TRIGGER message_bd_for_message_newsletter_follower_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_newsletter_follower_invite WHERE message_row_id=old._id; END;
 CREATE INDEX message_newsletter_follower_invite_newsletter_jid_row_id_index 
             ON message_newsletter_follower_invite (newsletter_jid_row_id);
 CREATE INDEX integrity_deleted_chat_message_count_lid_message_receive_date_index
             ON integrity_deleted_chat_message_count (lid, messages_receive_date);
 CREATE TABLE dynamic_audience_sources(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,dynamic_audience_type INTEGER NOT NULL,dynamic_audience_id INTEGER NOT NULL);
 CREATE TABLE broadcast_chat_details(chat_row_id INTEGER PRIMARY KEY NOT NULL,use_case INTEGER NOT NULL);
+CREATE TRIGGER chat_bd_for_broadcast_chat_details_trigger
+            BEFORE DELETE ON chat
+            BEGIN
+              DELETE FROM
+                broadcast_chat_details
+              WHERE
+                chat_row_id=old._id;
+            END;
+CREATE TRIGGER chat_bd_for_dynamic_audience_sources_trigger BEFORE DELETE ON chat BEGIN DELETE FROM dynamic_audience_sources WHERE chat_row_id=old._id; END;
 CREATE INDEX broadcast_chat_details_use_case_index ON broadcast_chat_details (use_case);
 CREATE INDEX idx_dynamic_audience_sources_dynamic_audience_type_and_id ON dynamic_audience_sources (dynamic_audience_type, dynamic_audience_id);
 CREATE UNIQUE INDEX idx_dynamic_audience_sources_unique_index ON dynamic_audience_sources (chat_row_id, dynamic_audience_type, dynamic_audience_id);
 CREATE TABLE message_system_update_audience_linking(message_row_id INTEGER PRIMARY KEY,lists_to_remove_count INTEGER,lists_to_sync_count INTEGER);
+CREATE TRIGGER message_system_bd_for_message_system_update_audience_linking_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_update_audience_linking WHERE message_row_id=old.message_row_id; END;
 CREATE INDEX integrity_chat_info_chat_row_id_index
             ON integrity_chat_info (chat_row_id);
 CREATE INDEX thread_id_active_pin_timestamp_index
@@ -503,6 +3027,10 @@ CREATE INDEX thread_id_active_pin_timestamp_index
 CREATE TABLE message_quarantine(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER,timestamp INTEGER NOT NULL,original_protobuf BLOB NOT NULL,serialized_stanza BLOB, protobuf_type INTEGER);
 CREATE TABLE message_structure_analysis_result(message_row_id INTEGER PRIMARY KEY NOT NULL,message_field_json_array TEXT,submessage_field_json_array TEXT,button_value_json_array TEXT, cta_url_unique_count INTEGER, body_url_count INTEGER, body_url_unique_count INTEGER, url_unique_count INTEGER);
 CREATE TABLE recently_selected_search_table(recent_chat_row_id INTEGER PRIMARY KEY,search_timestamp INTEGER);
+CREATE TRIGGER chat_bd_for_message_quarantine_trigger BEFORE DELETE ON chat BEGIN DELETE FROM message_quarantine WHERE chat_row_id=old._id; END;
+CREATE TRIGGER chat_bd_for_recently_selected_search_table_trigger BEFORE DELETE ON chat BEGIN DELETE FROM recently_selected_search_table WHERE recent_chat_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_quarantine_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_quarantine WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_structure_analysis_result_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_structure_analysis_result WHERE OLD._id = message_row_id; END;
 CREATE INDEX message_quarantine_by_chat
             ON message_quarantine (
               chat_row_id
@@ -518,7 +3046,10 @@ CREATE INDEX ai_thread_info_origin_chat_row_id_index
           ON ai_thread_info(origin_chat_row_id);
 CREATE TABLE message_biz_context_info(message_row_id INTEGER PRIMARY KEY,weblink_render_config INTEGER);
 CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,chat_request_type TEXT NOT NULL);
+CREATE TRIGGER message_bd_for_message_biz_context_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_biz_context_info WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_tee_chat_request_table_trigger BEFORE DELETE ON message BEGIN DELETE FROM tee_chat_request_table WHERE message_row_id=old._id; END;
 CREATE TABLE message_system_side_chat_privacy(message_row_id INTEGER PRIMARY KEY,origin_chat_row_id INTEGER NOT NULL);
+CREATE TRIGGER message_system_bd_for_message_system_side_chat_privacy_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_side_chat_privacy WHERE message_row_id=old.message_row_id; END;
 CREATE INDEX call_log_telecom_uuid_index 
             ON call_log (telecom_uuid) WHERE telecom_uuid IS NOT NULL;
 CREATE INDEX message_event_join_link_index
