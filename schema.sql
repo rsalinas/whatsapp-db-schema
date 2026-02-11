@@ -2970,7 +2970,7 @@ CREATE INDEX last_scan_index
           ON 
               frequent_forward_chat(last_scan);
 CREATE TABLE message_add_on_status_sticker_interaction(message_add_on_row_id INTEGER PRIMARY KEY,sticker_key TEXT,type INTEGER);
-CREATE TABLE ai_thread_info(thread_id_row_id INTEGER PRIMARY KEY,title TEXT,creation_ts INTEGER NOT NULL,variant INTEGER NOT NULL DEFAULT 1,last_thread_messages_row_id INTEGER,last_message_timestamp INTEGER, title_source INTEGER, unseen_message_count INTEGER, origin_chat_row_id INTEGER);
+CREATE TABLE ai_thread_info(thread_id_row_id INTEGER PRIMARY KEY,title TEXT,creation_ts INTEGER NOT NULL,variant INTEGER NOT NULL DEFAULT 1,last_thread_messages_row_id INTEGER,last_message_timestamp INTEGER, title_source INTEGER, unseen_message_count INTEGER, origin_chat_row_id INTEGER, selected_mode INTEGER, selected_modes BLOB);
 CREATE TABLE message_inline_video_metadata(message_row_id INTEGER PRIMARY KEY NOT NULL,video_content_url TEXT NOT NULL,is_muted INTEGER NOT NULL DEFAULT 0, caption TEXT);
 CREATE TRIGGER message_add_on_bd_for_message_add_on_status_sticker_interaction_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_status_sticker_interaction WHERE message_add_on_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_message_inline_video_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_inline_video_metadata WHERE message_row_id=old._id; END;
