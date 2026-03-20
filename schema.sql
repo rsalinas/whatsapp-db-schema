@@ -46,7 +46,7 @@ CREATE TABLE message_quoted_product(message_row_id INTEGER PRIMARY KEY,business_
 CREATE TABLE messages_hydrated_four_row_template(message_row_id INTEGER PRIMARY KEY,message_template_id TEXT);
 CREATE TABLE message_text(message_row_id INTEGER PRIMARY KEY,description TEXT,page_title TEXT,url TEXT,font_style INTEGER,text_color INTEGER,background_color INTEGER,preview_type INTEGER,invite_link_group_type INTEGER NOT NULL DEFAULT 0,counter_abuse_token TEXT, fb_experiment_id INTEGER, social_media_post_type INTEGER, link_media_duration_seconds INTEGER, link_end_index INTEGER);
 CREATE TABLE priority_inbox(_id INTEGER PRIMARY KEY AUTOINCREMENT,priority_score DOUBLE NOT NULL,version INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,is_priority BOOLEAN,label_removed BOOLEAN,time_created INTEGER,deep_conversion_rate BOOLEAN);
-CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT, metrics_metadata_json TEXT);
+CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT, metrics_metadata_json TEXT, bot_deep_link_token TEXT);
 CREATE TABLE quick_reply_attachments(_id INTEGER PRIMARY KEY AUTOINCREMENT,quick_reply_id TEXT NOT NULL,uri TEXT NOT NULL,caption TEXT,media_type INTEGER);
 CREATE TABLE message_details(message_row_id INTEGER PRIMARY KEY,author_device_jid INTEGER);
 CREATE TABLE message_quoted_payment_invite(message_row_id INTEGER PRIMARY KEY,service INTEGER,expiration_timestamp INTEGER, incentive_eligible INTEGER, referral_id TEXT);
@@ -2733,7 +2733,7 @@ CREATE INDEX extended_media_data_file_hash_index
 CREATE INDEX message_media_map_message_row_id_index ON message_media_map (message_row_id);
 CREATE INDEX message_media_map_chat_row_id_index ON message_media_map (chat_row_id);
 CREATE INDEX message_media_map_media_row_id_index ON message_media_map (media_row_id);
-CREATE TABLE group_history_metadata(message_row_id INTEGER PRIMARY KEY NOT NULL,history_receivers TEXT NOT NULL,first_message_timestamp_seconds INTEGER NOT NULL,message_count INTEGER NOT NULL, non_history_receivers TEXT);
+CREATE TABLE group_history_metadata(message_row_id INTEGER PRIMARY KEY NOT NULL,history_receivers TEXT NOT NULL,first_message_timestamp_seconds INTEGER NOT NULL,message_count INTEGER NOT NULL, non_history_receivers TEXT, oldest_message_timestamp_in_bundle_seconds INTEGER);
 CREATE TABLE group_history_bundle(message_row_id INTEGER PRIMARY KEY NOT NULL,process_state INTEGER NOT NULL DEFAULT 0, send_state INTEGER NOT NULL DEFAULT 0);
 CREATE TRIGGER message_bd_for_group_history_bundle_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_bundle WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_group_history_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_metadata WHERE message_row_id=old._id; END;
@@ -2838,7 +2838,7 @@ CREATE INDEX forward_frequency_index
             ON frequent_forward_chat(num_forward);
 CREATE INDEX last_timestamp_index 
             ON frequent_forward_chat(last_forward_timestamp);
-CREATE TABLE status_info_ranking_signals(chat_jid TEXT PRIMARY KEY NOT NULL,first_status_timestamp INTEGER NOT NULL DEFAULT 0,last_expired_status_timestamp INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE status_info_ranking_signals(chat_jid TEXT PRIMARY KEY NOT NULL,first_status_timestamp INTEGER NOT NULL DEFAULT 0,last_expired_status_timestamp INTEGER NOT NULL DEFAULT 0, cached_engagement_data BLOB, cached_engagement_timestamp INTEGER);
 CREATE TABLE status_quoted_message(message_row_id INTEGER PRIMARY KEY,description_text TEXT NOT NULL,thumbnail BLOB,type INTEGER,original_status_key_id TEXT,original_status_is_from_me INTEGER,original_status_chat_id TEXT,original_status_sender_id TEXT,add_on_key_id TEXT,add_on_is_from_me INTEGER,add_on_chat_id TEXT,add_on_sender_id TEXT);
 CREATE TRIGGER jid_map_delete_for_backup_changes_trigger
         AFTER DELETE ON jid_map
@@ -3074,6 +3074,23 @@ CREATE INDEX message_external_ad_content_source_id_index
 CREATE UNIQUE INDEX status_privacy_custom_list_list_id_index
       ON status_privacy_custom_list(list_id);
 CREATE TABLE group_history_share_reporting_info(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,stanza_id TEXT NOT NULL,reporting_token BLOB,reporting_token_version INTEGER,added_timestamp DATETIME NOT NULL,send_timestamp DATETIME,reporting_tag BLOB,is_send INTEGER);
+CREATE TRIGGER message_bd_for_group_history_share_reporting_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_share_reporting_info WHERE message_row_id=old._id; END;
+CREATE INDEX ghs_reporting_info_added_timestamp_index 
+          ON group_history_share_reporting_info (added_timestamp);
+CREATE INDEX ghs_reporting_info_message_row_id_index
+          ON group_history_share_reporting_info (message_row_id);
+CREATE TABLE feature_key_store(_id INTEGER PRIMARY KEY AUTOINCREMENT,key_id TEXT NOT NULL,key BLOB,key_type INTEGER NOT NULL,creation_timestamp INTEGER NOT NULL,expiry_timestamp INTEGER);
+CREATE TABLE message_ai_media_collection(message_row_id INTEGER PRIMARY KEY,collection_id TEXT,expected_media_count INTEGER,has_global_caption INTEGER);
+CREATE TABLE message_conditional_reveal(message_row_id INTEGER PRIMARY KEY,enc_payload BLOB,enc_iv BLOB,proto_data BLOB,reveal_key_index INTEGER,conditional_reveal_type INTEGER);
+CREATE VIRTUAL TABLE ai_thread_info_fts USING FTS4 (
+            search_content
+          )
+/* ai_thread_info_fts(search_content) */;
+CREATE TABLE IF NOT EXISTS 'ai_thread_info_fts_content'(docid INTEGER PRIMARY KEY, 'c0search_content');
+CREATE TABLE IF NOT EXISTS 'ai_thread_info_fts_segments'(blockid INTEGER PRIMARY KEY, block BLOB);
+CREATE TABLE IF NOT EXISTS 'ai_thread_info_fts_segdir'(level INTEGER,idx INTEGER,start_block INTEGER,leaves_end_block INTEGER,end_block INTEGER,root BLOB,PRIMARY KEY(level, idx));
+CREATE TABLE IF NOT EXISTS 'ai_thread_info_fts_docsize'(docid INTEGER PRIMARY KEY, size BLOB);
+CREATE TABLE IF NOT EXISTS 'ai_thread_info_fts_stat'(id INTEGER PRIMARY KEY, value BLOB);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3457,8 +3474,15 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER message_bd_for_group_history_share_reporting_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_share_reporting_info WHERE message_row_id=old._id; END;
-CREATE INDEX ghs_reporting_info_added_timestamp_index 
-          ON group_history_share_reporting_info (added_timestamp);
-CREATE INDEX ghs_reporting_info_message_row_id_index
-          ON group_history_share_reporting_info (message_row_id);
+CREATE TRIGGER ai_thread_info_bd_for_ai_thread_info_fts_trigger
+          BEFORE DELETE ON ai_thread_info BEGIN
+            DELETE FROM ai_thread_info_fts WHERE docid = old.thread_id_row_id;
+          END;
+CREATE TRIGGER message_bd_for_message_ai_media_collection_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_ai_media_collection WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_conditional_reveal_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_conditional_reveal WHERE message_row_id=old._id; END;
+CREATE INDEX feature_key_store_creation_timestamp_index ON feature_key_store (key_type, creation_timestamp);
+CREATE INDEX feature_key_store_expiry_timestamp_index ON feature_key_store (key_type, expiry_timestamp);
+CREATE UNIQUE INDEX feature_key_store_index ON feature_key_store (
+          key_id, key_type);
+CREATE UNIQUE INDEX message_ai_media_collection_collection_id_idx
+            ON message_ai_media_collection (collection_id);
