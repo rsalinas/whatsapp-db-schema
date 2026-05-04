@@ -4,7 +4,7 @@ CREATE TABLE message_vcard_jid(_id INTEGER PRIMARY KEY AUTOINCREMENT, vcard_jid_
 CREATE TABLE receipt_orphaned (_id INTEGER PRIMARY KEY AUTOINCREMENT, chat_row_id INTEGER NOT NULL, from_me INTEGER NOT NULL, key_id TEXT NOT NULL, receipt_device_jid_row_id INTEGER NOT NULL, receipt_recipient_jid_row_id INTEGER, status INTEGER, timestamp INTEGER);
 CREATE TABLE message(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,from_me INTEGER NOT NULL,key_id TEXT NOT NULL,sender_jid_row_id INTEGER,status INTEGER,broadcast INTEGER,recipient_count INTEGER,participant_hash TEXT,origination_flags INTEGER,origin INTEGER,timestamp INTEGER,received_timestamp INTEGER,receipt_server_timestamp INTEGER,message_type INTEGER,text_data TEXT,starred INTEGER,lookup_tables INTEGER,message_add_on_flags INTEGER,view_mode INTEGER,sort_id INTEGER NOT NULL DEFAULT 0, translated_text TEXT, view_replies_thread_id INTEGER, server_sts INTEGER);
 CREATE TABLE message_add_on_receipt_device (receipt_device_id INTEGER PRIMARY KEY AUTOINCREMENT, message_add_on_row_id INTEGER, receipt_device_jid_row_id INTEGER, receipt_device_timestamp INTEGER, primary_device_version INTEGER);
-CREATE TABLE group_participant_user (_id INTEGER PRIMARY KEY AUTOINCREMENT, group_jid_row_id INTEGER NOT NULL, user_jid_row_id INTEGER NOT NULL, rank INTEGER, pending INTEGER, add_timestamp INTEGER, label TEXT, join_method INTEGER);
+CREATE TABLE group_participant_user (_id INTEGER PRIMARY KEY AUTOINCREMENT, group_jid_row_id INTEGER NOT NULL, user_jid_row_id INTEGER NOT NULL, rank INTEGER, pending INTEGER, add_timestamp INTEGER, label TEXT, join_method INTEGER, group_history_send_state INTEGER);
 CREATE TABLE message_system_value_change(message_row_id INTEGER PRIMARY KEY,old_data TEXT);
 CREATE TABLE newsletter(chat_row_id INTEGER PRIMARY KEY,name TEXT NOT NULL,name_id INTEGER NOT NULL,description TEXT NOT NULL,description_id INTEGER NOT NULL,picture_url TEXT,picture_id INTEGER NOT NULL,preview_url TEXT,preview_id INTEGER NOT NULL,invite_code TEXT,handle TEXT,subscribers_count INTEGER NOT NULL,membership INTEGER NOT NULL,privacy INTEGER NOT NULL,verified INTEGER NOT NULL,muted INTEGER NOT NULL,oldest_message_retrieved INTEGER NOT NULL,suspended INTEGER NOT NULL DEFAULT 0,deleted INTEGER NOT NULL DEFAULT 0,show_enforced_update_banner INTEGER,reaction_setting INTEGER,reaction_setting_blocklist STRING,reaction_setting_update_ts INTEGER,verification_source INTEGER, admin_count INTEGER, wamo_sub_plan_id INTEGER, capabilities INTEGER, wamo_sub_status INTEGER, fts_index_state INTEGER, last_fts_message_indexed INTEGER, admin_activity_tone TEXT, follower_activity_tone TEXT, admin_activity_vibrate INTEGER, follower_activity_vibrate INTEGER, admin_profile_id INTEGER, admin_profile_name TEXT, admin_profile_picture_id INTEGER, admin_profile_picture_url TEXT, last_status_server_id INTEGER, last_filled_status_server_id INTEGER, refresh_after_interval_sec INTEGER, admin_profiles_enabled INTEGER, last_status_sent_time INTEGER);
 CREATE TABLE jid(_id INTEGER PRIMARY KEY AUTOINCREMENT,user TEXT NOT NULL,server TEXT NOT NULL,agent INTEGER,device INTEGER,type INTEGER,raw_string TEXT);
@@ -12,7 +12,7 @@ CREATE TABLE payment_background_order(background_id TEXT PRIMARY KEY,background_
 CREATE TABLE message_quoted_media(message_row_id INTEGER PRIMARY KEY,media_job_uuid TEXT,transferred INTEGER,file_path TEXT,file_size INTEGER,media_key BLOB,media_key_timestamp INTEGER,width INTEGER,height INTEGER,direct_path TEXT,message_url TEXT,mime_type TEXT,file_length INTEGER,media_name TEXT,file_hash TEXT,media_duration INTEGER,page_count INTEGER,enc_file_hash TEXT,thumbnail BLOB,media_caption TEXT, accessibility_label TEXT);
 CREATE TABLE primary_device_version(user_jid_row_id INTEGER PRIMARY KEY,version INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE message_ui_elements_reply(message_row_id INTEGER PRIMARY KEY,element_type INTEGER,reply_values TEXT,reply_description TEXT, flow_id TEXT);
-CREATE TABLE message_external_ad_content(message_row_id INTEGER PRIMARY KEY,title TEXT,body TEXT,media_type INTEGER,thumbnail_url TEXT,full_thumbnail BLOB,micro_thumbnail BLOB,media_url TEXT,source_type TEXT,source_id TEXT,source_url TEXT,render_larger_thumbnail BOOLEAN,show_ad_attribution BOOLEAN,has_icebreaker_auto_response BOOLEAN,has_click_to_call_auto_response BOOLEAN, ad_context_preview_dismissed INTEGER, source_app TEXT, automated_greeting_message_shown INTEGER, greeting_message_body TEXT, cta_payload TEXT, disable_nudge INTEGER, original_image_url TEXT, automated_greeting_message_cta_type TEXT, ctwa_clid TEXT, wtwa_ad_format BOOLEAN, ad_preview_url TEXT, wtwa_website_url TEXT, has_ctwa_flows_auto_response BOOLEAN);
+CREATE TABLE message_external_ad_content(message_row_id INTEGER PRIMARY KEY,title TEXT,body TEXT,media_type INTEGER,thumbnail_url TEXT,full_thumbnail BLOB,micro_thumbnail BLOB,media_url TEXT,source_type TEXT,source_id TEXT,source_url TEXT,render_larger_thumbnail BOOLEAN,show_ad_attribution BOOLEAN,has_icebreaker_auto_response BOOLEAN,has_click_to_call_auto_response BOOLEAN, ad_context_preview_dismissed INTEGER, source_app TEXT, automated_greeting_message_shown INTEGER, greeting_message_body TEXT, cta_payload TEXT, disable_nudge INTEGER, original_image_url TEXT, automated_greeting_message_cta_type TEXT, ctwa_clid TEXT, wtwa_ad_format BOOLEAN, ad_preview_url TEXT, wtwa_website_url TEXT, has_ctwa_flows_auto_response BOOLEAN, agm_thumbnail_strategy INTEGER, agm_title_strategy INTEGER, agm_subtitle_strategy INTEGER, agm_header_interaction_strategy INTEGER);
 CREATE TABLE away_messages(_id INTEGER PRIMARY KEY AUTOINCREMENT,jid TEXT UNIQUE NOT NULL);
 CREATE TABLE jid_map(lid_row_id INTEGER PRIMARY KEY NOT NULL,jid_row_id INTEGER NOT NULL, sort_id INTEGER);
 CREATE TABLE message_quoted_mentions(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,jid_row_id INTEGER,display_name STRING, mention_type INTEGER);
@@ -158,7 +158,7 @@ CREATE TABLE message_payment_transaction_reminder(message_row_id INTEGER PRIMARY
 CREATE TABLE newsletter_message(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER NOT NULL,server_message_id INTEGER NOT NULL,comments_count INTEGER NOT NULL DEFAULT 0,reaction_from_me TEXT,extra_newsletter_tables INTEGER NOT NULL DEFAULT 0,extra_table_last_update_ts INTEGER,reactions_from_me_ts INTEGER,view_count INTEGER, is_autodelete_eligible INTEGER, is_wamo_sub INTEGER, forwards_count INTEGER, admin_profile_id INTEGER, admin_profile_name TEXT, admin_profile_picture_id INTEGER, admin_profile_picture_url TEXT, is_paid_partnership INTEGER);
 CREATE TABLE invoice_transactions(message_row_id INTEGER PRIMARY KEY,pay_transaction_id INTEGER);
 CREATE TABLE message_edit_info(message_row_id INTEGER PRIMARY KEY,original_key_id TEXT NOT NULL,edited_timestamp INTEGER NOT NULL,sender_timestamp INTEGER NOT NULL);
-CREATE TABLE status_message_info(message_row_id INTEGER PRIMARY KEY,status_distribution_mode INTEGER NOT NULL, is_mentioned INTEGER, status_mentions TEXT, cannot_receive_reactions INTEGER, cannot_be_ranked INTEGER, has_embedded_music INTEGER, status_mention_source TEXT, status_attribution_type INTEGER, is_group_status INTEGER, can_be_reshared INTEGER, ranking_version INTEGER, external_media_duration_seconds INTEGER, original_status_message_row_id INTEGER, original_poster_notification_type INTEGER, status_source_type INTEGER, selected_audience_list TEXT, override_notification_recipient_jid TEXT, can_receive_multi_reactions INTEGER, audience_type INTEGER, status_poster_contact_type INTEGER, status_audience_custom_list_name TEXT, status_audience_custom_list_emoji TEXT);
+CREATE TABLE status_message_info(message_row_id INTEGER PRIMARY KEY,status_distribution_mode INTEGER NOT NULL, is_mentioned INTEGER, status_mentions TEXT, cannot_receive_reactions INTEGER, cannot_be_ranked INTEGER, has_embedded_music INTEGER, status_mention_source TEXT, status_attribution_type INTEGER, is_group_status INTEGER, can_be_reshared INTEGER, ranking_version INTEGER, external_media_duration_seconds INTEGER, original_status_message_row_id INTEGER, original_poster_notification_type INTEGER, status_source_type INTEGER, selected_audience_list TEXT, override_notification_recipient_jid TEXT, can_receive_multi_reactions INTEGER, audience_type INTEGER, status_poster_contact_type INTEGER, status_audience_custom_list_name TEXT, status_audience_custom_list_emoji TEXT, poster_status_id TEXT);
 CREATE TABLE message_quote_invoice(message_row_id INTEGER PRIMARY KEY,amount TEXT NOT NULL,note TEXT NOT NULL,status INTEGER,attachment_jpeg_thumbnail BLOB);
 CREATE TABLE message_bcall_session(message_row_id INTEGER PRIMARY KEY,bcall_session_row_id INTEGER);
 CREATE TABLE agent_chat_assignment(jid_row_id INTEGER PRIMARY KEY,agent_id TEXT NOT NULL,is_opened BOOLEAN, account_jid_row_id INTEGER);
@@ -3066,7 +3066,7 @@ CREATE TABLE interactive_message_bloks_widget(_id INTEGER PRIMARY KEY AUTOINCREM
 CREATE TRIGGER message_bd_for_interactive_message_bloks_widget_trigger BEFORE DELETE ON message BEGIN DELETE FROM interactive_message_bloks_widget WHERE message_row_id=old._id; END;
 CREATE UNIQUE INDEX interactive_message_bloks_widget_message_row_id_index
             ON interactive_message_bloks_widget (message_row_id);
-CREATE TABLE status_privacy_custom_list(row_id INTEGER PRIMARY KEY AUTOINCREMENT,list_id TEXT NOT NULL,name TEXT,emoji TEXT,is_selected INTEGER NOT NULL DEFAULT 0,member_jids TEXT);
+CREATE TABLE status_privacy_custom_list(row_id INTEGER PRIMARY KEY AUTOINCREMENT,list_id TEXT NOT NULL,name TEXT,emoji TEXT,is_selected INTEGER NOT NULL DEFAULT 0,member_jids TEXT, source_group_jids TEXT, allow_list_selected INTEGER);
 CREATE INDEX ai_thread_info_title_index
           ON ai_thread_info(title COLLATE NOCASE);
 CREATE INDEX message_external_ad_content_source_id_index
@@ -3098,21 +3098,24 @@ CREATE TRIGGER ai_thread_info_bd_for_ai_thread_info_fts_trigger
 CREATE TRIGGER message_bd_for_message_conditional_reveal_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_conditional_reveal WHERE message_row_id=old._id; END;
 CREATE INDEX feature_key_store_creation_timestamp_index ON feature_key_store (key_type, creation_timestamp);
 CREATE INDEX feature_key_store_expiry_timestamp_index ON feature_key_store (key_type, expiry_timestamp);
-CREATE UNIQUE INDEX feature_key_store_index ON feature_key_store (
-          key_id, key_type);
-CREATE UNIQUE INDEX message_ai_media_collection_collection_id_idx
-            ON message_ai_media_collection (collection_id);
 CREATE TABLE poll_vote_delivered_option(_id INTEGER PRIMARY KEY AUTOINCREMENT,parent_message_row_id INTEGER,message_poll_option_id INTEGER);
 CREATE TRIGGER message_bd_for_poll_vote_delivered_option_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_vote_delivered_option WHERE parent_message_row_id=old._id; END;
 CREATE INDEX poll_vote_delivered_option_parent_idx
             ON poll_vote_delivered_option (parent_message_row_id);
 CREATE UNIQUE INDEX feature_key_store_key_jid_type_index ON feature_key_store (
           key_id, key_jid, key_type);
-CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
 CREATE TRIGGER chat_bd_for_integrity_analysis_result_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_analysis_result WHERE chat_row_id=old._id; END;
 CREATE TRIGGER chat_bd_for_integrity_input_feature_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_input_feature WHERE chat_row_id=old._id; END;
 CREATE INDEX message_conditional_reveal_chat_row_reveal_type_from_me_index ON message_conditional_reveal (chat_row_id, conditional_reveal_type, from_me);
-CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT);
+CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, end_time INTEGER);
+CREATE TRIGGER message_bd_for_message_event_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_event_invite WHERE message_row_id=old._id; END;
+CREATE INDEX message_event_invite_event_id_index
+            ON message_event_invite (event_id);
+CREATE TABLE poll_edit_snapshot(_id INTEGER PRIMARY KEY AUTOINCREMENT,parent_message_row_id INTEGER,previous_poll_name TEXT);
+CREATE TRIGGER message_bd_for_poll_edit_snapshot_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_edit_snapshot WHERE parent_message_row_id=old._id; END;
+CREATE INDEX poll_edit_snapshot_parent_idx
+            ON poll_edit_snapshot (parent_message_row_id);
+CREATE TABLE receipt_coex(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,user_lid_row_id INTEGER NOT NULL,receipt_coex_timestamp INTEGER);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3500,6 +3503,72 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER message_bd_for_message_event_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_event_invite WHERE message_row_id=old._id; END;
-CREATE INDEX message_event_invite_event_id_index
-            ON message_event_invite (event_id);
+CREATE TRIGGER message_bd_for_receipt_coex_trigger BEFORE DELETE ON message BEGIN DELETE FROM receipt_coex WHERE message_row_id=old._id; END;
+CREATE TRIGGER receipt_coex_delete_for_backup_changes_trigger
+        AFTER DELETE ON receipt_coex
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'receipt_coex')
+          AND
+          (table_row_id = OLD._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'receipt_coex', OLD._id)
+      ;
+        END;
+CREATE TRIGGER receipt_coex_insert_for_backup_changes_trigger
+        AFTER INSERT ON receipt_coex
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'receipt_coex')
+          AND
+          (table_row_id = NEW._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'receipt_coex', NEW._id)
+      ;
+        END;
+CREATE TRIGGER receipt_coex_update_for_backup_changes_trigger
+        AFTER UPDATE ON receipt_coex
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'receipt_coex')
+          AND
+          (table_row_id = NEW._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'receipt_coex', NEW._id)
+      ;
+        END;
+CREATE UNIQUE INDEX receipt_coex_index
+            ON receipt_coex (
+              message_row_id,
+              user_lid_row_id
+            );
