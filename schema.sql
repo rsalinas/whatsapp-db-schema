@@ -31,7 +31,7 @@ CREATE TABLE mms_thumbnail_metadata(message_row_id INTEGER PRIMARY KEY,direct_pa
 CREATE TABLE bot_chat_info(chat_row_id INTEGER PRIMARY KEY,pip_enabled BOOLEAN DEFAULT 0,welcome_request_message_sent BOOLEAN, bot_metrics_thread_origin TEXT);
 CREATE TABLE audio_data(message_row_id INTEGER PRIMARY KEY,waveform BLOB,background_color INTEGER NOT NULL DEFAULT 0, transcription_status INTEGER, transcription_locale INTEGER, transcription_confidence_threshold INTEGER, transcription_request_locale INTEGER, transcription_feedback_submitted INTEGER, transcription_id TEXT, background_color_changed INTEGER DEFAULT 0);
 CREATE TABLE status_crossposting_v3(status_message_row_id INTEGER,crossposting_session_id TEXT,crossposting_status_unique_id TEXT,state INTEGER,media_file_path TEXT,direct_url_path TEXT,destination INTEGER,PRIMARY KEY (status_message_row_id, destination));
-CREATE TABLE joinable_call_log(call_log_row_id INTEGER PRIMARY KEY,call_id TEXT NOT NULL,joinable_video_call INTEGER NOT NULL DEFAULT 0,group_jid_row_id INTEGER NOT NULL DEFAULT 0, phash_identifier TEXT, self_other_device_connected INTEGER);
+CREATE TABLE joinable_call_log(call_log_row_id INTEGER PRIMARY KEY,call_id TEXT NOT NULL,joinable_video_call INTEGER NOT NULL DEFAULT 0,group_jid_row_id INTEGER NOT NULL DEFAULT 0, phash_identifier TEXT, self_other_device_connected INTEGER, is_lgc_add INTEGER);
 CREATE TABLE message_ephemeral(message_row_id INTEGER PRIMARY KEY,duration INTEGER NOT NULL,expire_timestamp INTEGER NOT NULL,keep_in_chat INTEGER NOT NULL DEFAULT 0,ephemeral_trigger INTEGER,ephemeral_initiated_by_me INTEGER, after_read_duration INTEGER);
 CREATE TABLE media_refs(_id INTEGER PRIMARY KEY AUTOINCREMENT,path TEXT UNIQUE,ref_count INTEGER);
 CREATE TABLE message_system_payment_invite_setup(message_row_id INTEGER PRIMARY KEY,service INTEGER,invite_used INTEGER);
@@ -46,7 +46,7 @@ CREATE TABLE message_quoted_product(message_row_id INTEGER PRIMARY KEY,business_
 CREATE TABLE messages_hydrated_four_row_template(message_row_id INTEGER PRIMARY KEY,message_template_id TEXT);
 CREATE TABLE message_text(message_row_id INTEGER PRIMARY KEY,description TEXT,page_title TEXT,url TEXT,font_style INTEGER,text_color INTEGER,background_color INTEGER,preview_type INTEGER,invite_link_group_type INTEGER NOT NULL DEFAULT 0,counter_abuse_token TEXT, fb_experiment_id INTEGER, social_media_post_type INTEGER, link_media_duration_seconds INTEGER, link_end_index INTEGER);
 CREATE TABLE priority_inbox(_id INTEGER PRIMARY KEY AUTOINCREMENT,priority_score DOUBLE NOT NULL,version INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,is_priority BOOLEAN,label_removed BOOLEAN,time_created INTEGER,deep_conversion_rate BOOLEAN);
-CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT, metrics_metadata_json TEXT, bot_deep_link_token TEXT, ai_media_collection_metadata_json TEXT, signature_validation_status INTEGER);
+CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT, metrics_metadata_json TEXT, bot_deep_link_token TEXT, ai_media_collection_metadata_json TEXT, signature_validation_status INTEGER, tool_calls_blob BLOB);
 CREATE TABLE quick_reply_attachments(_id INTEGER PRIMARY KEY AUTOINCREMENT,quick_reply_id TEXT NOT NULL,uri TEXT NOT NULL,caption TEXT,media_type INTEGER);
 CREATE TABLE message_details(message_row_id INTEGER PRIMARY KEY,author_device_jid INTEGER);
 CREATE TABLE message_quoted_payment_invite(message_row_id INTEGER PRIMARY KEY,service INTEGER,expiration_timestamp INTEGER, incentive_eligible INTEGER, referral_id TEXT, invite_type INTEGER);
@@ -3045,7 +3045,7 @@ CREATE INDEX recent_selected_search_timestamp_index
 CREATE INDEX ai_thread_info_origin_chat_row_id_index
           ON ai_thread_info(origin_chat_row_id);
 CREATE TABLE message_biz_context_info(message_row_id INTEGER PRIMARY KEY,weblink_render_config INTEGER);
-CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,chat_request_type TEXT NOT NULL);
+CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,chat_request_type TEXT NOT NULL, anchor_message_row_id INTEGER);
 CREATE TRIGGER message_bd_for_message_biz_context_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_biz_context_info WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_tee_chat_request_table_trigger BEFORE DELETE ON message BEGIN DELETE FROM tee_chat_request_table WHERE message_row_id=old._id; END;
 CREATE TABLE message_system_side_chat_privacy(message_row_id INTEGER PRIMARY KEY,origin_chat_row_id INTEGER NOT NULL);
@@ -3116,6 +3116,79 @@ CREATE TRIGGER message_bd_for_poll_edit_snapshot_trigger BEFORE DELETE ON messag
 CREATE INDEX poll_edit_snapshot_parent_idx
             ON poll_edit_snapshot (parent_message_row_id);
 CREATE TABLE receipt_coex(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,user_lid_row_id INTEGER NOT NULL,receipt_coex_timestamp INTEGER);
+CREATE TRIGGER message_bd_for_receipt_coex_trigger BEFORE DELETE ON message BEGIN DELETE FROM receipt_coex WHERE message_row_id=old._id; END;
+CREATE TRIGGER receipt_coex_delete_for_backup_changes_trigger
+        AFTER DELETE ON receipt_coex
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'receipt_coex')
+          AND
+          (table_row_id = OLD._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'receipt_coex', OLD._id)
+      ;
+        END;
+CREATE TRIGGER receipt_coex_insert_for_backup_changes_trigger
+        AFTER INSERT ON receipt_coex
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'receipt_coex')
+          AND
+          (table_row_id = NEW._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'receipt_coex', NEW._id)
+      ;
+        END;
+CREATE TRIGGER receipt_coex_update_for_backup_changes_trigger
+        AFTER UPDATE ON receipt_coex
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'receipt_coex')
+          AND
+          (table_row_id = NEW._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'receipt_coex', NEW._id)
+      ;
+        END;
+CREATE UNIQUE INDEX receipt_coex_index
+            ON receipt_coex (
+              message_row_id,
+              user_lid_row_id
+            );
+CREATE TABLE group_root_key_mapping(_id INTEGER PRIMARY KEY AUTOINCREMENT,group_jid_row_id INTEGER NOT NULL,key_id TEXT NOT NULL,is_current INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE message_add_on_receipt_coex(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_add_on_row_id INTEGER NOT NULL,user_lid_row_id INTEGER NOT NULL,receipt_coex_timestamp INTEGER);
+CREATE TABLE message_split_payment(message_row_id INTEGER NOT NULL,split_id TEXT PRIMARY KEY,total_amount_value INTEGER NOT NULL DEFAULT 0,total_amount_offset INTEGER NOT NULL DEFAULT 1,currency_code TEXT NOT NULL DEFAULT 'INR',description TEXT,requester_jid_row_id INTEGER,created_at_ms INTEGER);
+CREATE TABLE message_split_payment_participant(split_id TEXT NOT NULL,jid_row_id INTEGER NOT NULL,share_amount_value INTEGER NOT NULL DEFAULT 0,share_amount_offset INTEGER NOT NULL DEFAULT 1,currency_code TEXT NOT NULL DEFAULT 'INR',status_value INTEGER NOT NULL DEFAULT 0,PRIMARY KEY (split_id, jid_row_id));
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3503,14 +3576,16 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER message_bd_for_receipt_coex_trigger BEFORE DELETE ON message BEGIN DELETE FROM receipt_coex WHERE message_row_id=old._id; END;
-CREATE TRIGGER receipt_coex_delete_for_backup_changes_trigger
-        AFTER DELETE ON receipt_coex
+CREATE TRIGGER group_root_key_mapping_before_delete_chat BEFORE DELETE ON chat BEGIN DELETE FROM group_root_key_mapping WHERE group_jid_row_id = OLD.jid_row_id; END;
+CREATE TRIGGER group_root_key_mapping_before_delete_feature_key BEFORE DELETE ON group_root_key_mapping BEGIN DELETE FROM feature_key_store WHERE key_id = OLD.key_id AND key_type = 2 AND key_jid = (SELECT raw_string FROM jid WHERE _id = OLD.group_jid_row_id); END;
+CREATE TRIGGER message_add_on_bd_for_message_add_on_receipt_coex_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_receipt_coex WHERE message_add_on_row_id=old._id; END;
+CREATE TRIGGER message_add_on_receipt_coex_delete_for_backup_changes_trigger
+        AFTER DELETE ON message_add_on_receipt_coex
         BEGIN
           
         DELETE FROM backup_changes
         WHERE
-          (table_name = 'receipt_coex')
+          (table_name = 'message_add_on_receipt_coex')
           AND
           (table_row_id = OLD._id)
           AND
@@ -3522,16 +3597,16 @@ CREATE TRIGGER receipt_coex_delete_for_backup_changes_trigger
       ;
           
         INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('DELETE', 'receipt_coex', OLD._id)
+        VALUES('DELETE', 'message_add_on_receipt_coex', OLD._id)
       ;
         END;
-CREATE TRIGGER receipt_coex_insert_for_backup_changes_trigger
-        AFTER INSERT ON receipt_coex
+CREATE TRIGGER message_add_on_receipt_coex_insert_for_backup_changes_trigger
+        AFTER INSERT ON message_add_on_receipt_coex
         BEGIN
           
         DELETE FROM backup_changes
         WHERE
-          (table_name = 'receipt_coex')
+          (table_name = 'message_add_on_receipt_coex')
           AND
           (table_row_id = NEW._id)
           AND
@@ -3543,16 +3618,16 @@ CREATE TRIGGER receipt_coex_insert_for_backup_changes_trigger
       ;
           
         INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('INSERT', 'receipt_coex', NEW._id)
+        VALUES('INSERT', 'message_add_on_receipt_coex', NEW._id)
       ;
         END;
-CREATE TRIGGER receipt_coex_update_for_backup_changes_trigger
-        AFTER UPDATE ON receipt_coex
+CREATE TRIGGER message_add_on_receipt_coex_update_for_backup_changes_trigger
+        AFTER UPDATE ON message_add_on_receipt_coex
         BEGIN
           
         DELETE FROM backup_changes
         WHERE
-          (table_name = 'receipt_coex')
+          (table_name = 'message_add_on_receipt_coex')
           AND
           (table_row_id = NEW._id)
           AND
@@ -3564,11 +3639,18 @@ CREATE TRIGGER receipt_coex_update_for_backup_changes_trigger
       ;
           
         INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('UPDATE', 'receipt_coex', NEW._id)
+        VALUES('UPDATE', 'message_add_on_receipt_coex', NEW._id)
       ;
         END;
-CREATE UNIQUE INDEX receipt_coex_index
-            ON receipt_coex (
-              message_row_id,
+CREATE TRIGGER message_bd_for_message_split_payment_participant_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_split_payment_participant WHERE split_id IN (SELECT split_id FROM message_split_payment WHERE message_row_id=old._id); END;
+CREATE TRIGGER message_bd_for_message_split_payment_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_split_payment WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_tee_chat_request_table_anchor_trigger BEFORE DELETE ON message BEGIN UPDATE tee_chat_request_table SET anchor_message_row_id = NULL WHERE anchor_message_row_id = old._id; END;
+CREATE TRIGGER message_split_payment_bd_for_message_split_payment_participant_trigger BEFORE DELETE ON message_split_payment BEGIN DELETE FROM message_split_payment_participant WHERE split_id=old.split_id; END;
+CREATE UNIQUE INDEX group_root_key_mapping_group_jid_key_id_unique_index ON group_root_key_mapping (group_jid_row_id, key_id);
+CREATE UNIQUE INDEX message_add_on_receipt_coex_index
+            ON message_add_on_receipt_coex (
+              message_add_on_row_id,
               user_lid_row_id
             );
+CREATE INDEX message_split_payment_message_row_id_index ON message_split_payment (message_row_id);
+CREATE INDEX message_split_payment_participant_split_id_index ON message_split_payment_participant (split_id);
