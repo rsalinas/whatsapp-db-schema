@@ -3107,7 +3107,7 @@ CREATE UNIQUE INDEX feature_key_store_key_jid_type_index ON feature_key_store (
 CREATE TRIGGER chat_bd_for_integrity_analysis_result_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_analysis_result WHERE chat_row_id=old._id; END;
 CREATE TRIGGER chat_bd_for_integrity_input_feature_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_input_feature WHERE chat_row_id=old._id; END;
 CREATE INDEX message_conditional_reveal_chat_row_reveal_type_from_me_index ON message_conditional_reveal (chat_row_id, conditional_reveal_type, from_me);
-CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, end_time INTEGER);
+CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, end_time INTEGER, call_link TEXT);
 CREATE TRIGGER message_bd_for_message_event_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_event_invite WHERE message_row_id=old._id; END;
 CREATE INDEX message_event_invite_event_id_index
             ON message_event_invite (event_id);
@@ -3268,7 +3268,140 @@ CREATE UNIQUE INDEX message_add_on_receipt_coex_index
 CREATE INDEX message_split_payment_message_row_id_index ON message_split_payment (message_row_id);
 CREATE INDEX message_split_payment_participant_split_id_index ON message_split_payment_participant (split_id);
 CREATE TABLE message_payment_reminder(message_row_id INTEGER PRIMARY KEY NOT NULL,reminder_id TEXT NOT NULL,instance_id TEXT NOT NULL,description TEXT,frequency TEXT,status TEXT,payee_vpa TEXT,payee_jid_row_id INTEGER,payer_jid_row_id INTEGER,amount_value INTEGER,amount_offset INTEGER,amount_currency_code TEXT);
-CREATE TABLE message_quoted_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,end_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT);
+CREATE TABLE message_quoted_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,end_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, call_link TEXT);
+CREATE TRIGGER message_bd_for_message_payment_reminder_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_payment_reminder WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_event_invite_delete_for_backup_changes_trigger
+        AFTER DELETE ON message_event_invite
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'message_event_invite')
+          AND
+          (table_row_id = OLD.message_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'message_event_invite', OLD.message_row_id)
+      ;
+        END;
+CREATE TRIGGER message_event_invite_insert_for_backup_changes_trigger
+        AFTER INSERT ON message_event_invite
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'message_event_invite')
+          AND
+          (table_row_id = NEW.message_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'message_event_invite', NEW.message_row_id)
+      ;
+        END;
+CREATE TRIGGER message_event_invite_update_for_backup_changes_trigger
+        AFTER UPDATE ON message_event_invite
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'message_event_invite')
+          AND
+          (table_row_id = NEW.message_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'message_event_invite', NEW.message_row_id)
+      ;
+        END;
+CREATE TRIGGER message_quoted_bd_for_message_quoted_event_invite_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_event_invite WHERE message_row_id=old.message_row_id; END;
+CREATE TRIGGER message_quoted_event_invite_delete_for_backup_changes_trigger
+        AFTER DELETE ON message_quoted_event_invite
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'message_quoted_event_invite')
+          AND
+          (table_row_id = OLD.message_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'message_quoted_event_invite', OLD.message_row_id)
+      ;
+        END;
+CREATE TRIGGER message_quoted_event_invite_insert_for_backup_changes_trigger
+        AFTER INSERT ON message_quoted_event_invite
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'message_quoted_event_invite')
+          AND
+          (table_row_id = NEW.message_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'message_quoted_event_invite', NEW.message_row_id)
+      ;
+        END;
+CREATE TRIGGER message_quoted_event_invite_update_for_backup_changes_trigger
+        AFTER UPDATE ON message_quoted_event_invite
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'message_quoted_event_invite')
+          AND
+          (table_row_id = NEW.message_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'message_quoted_event_invite', NEW.message_row_id)
+      ;
+        END;
+CREATE INDEX chat_ephemeral_after_read_duration_index
+            ON chat (ephemeral_after_read_duration)
+            WHERE ephemeral_after_read_duration > 0;
+CREATE TABLE auth_agent_chat_metadata(chat_row_id INTEGER PRIMARY KEY,parent_company_name TEXT,oba_phone_number TEXT);
+CREATE TABLE newsletter_jarvis_config(chat_row_id INTEGER PRIMARY KEY,config_json TEXT NOT NULL);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3656,134 +3789,12 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER message_bd_for_message_payment_reminder_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_payment_reminder WHERE message_row_id=old._id; END;
-CREATE TRIGGER message_event_invite_delete_for_backup_changes_trigger
-        AFTER DELETE ON message_event_invite
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'message_event_invite')
-          AND
-          (table_row_id = OLD.message_row_id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('DELETE', 'message_event_invite', OLD.message_row_id)
-      ;
-        END;
-CREATE TRIGGER message_event_invite_insert_for_backup_changes_trigger
-        AFTER INSERT ON message_event_invite
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'message_event_invite')
-          AND
-          (table_row_id = NEW.message_row_id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('INSERT', 'message_event_invite', NEW.message_row_id)
-      ;
-        END;
-CREATE TRIGGER message_event_invite_update_for_backup_changes_trigger
-        AFTER UPDATE ON message_event_invite
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'message_event_invite')
-          AND
-          (table_row_id = NEW.message_row_id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('UPDATE', 'message_event_invite', NEW.message_row_id)
-      ;
-        END;
-CREATE TRIGGER message_quoted_bd_for_message_quoted_event_invite_trigger BEFORE DELETE ON message_quoted BEGIN DELETE FROM message_quoted_event_invite WHERE message_row_id=old.message_row_id; END;
-CREATE TRIGGER message_quoted_event_invite_delete_for_backup_changes_trigger
-        AFTER DELETE ON message_quoted_event_invite
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'message_quoted_event_invite')
-          AND
-          (table_row_id = OLD.message_row_id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('DELETE', 'message_quoted_event_invite', OLD.message_row_id)
-      ;
-        END;
-CREATE TRIGGER message_quoted_event_invite_insert_for_backup_changes_trigger
-        AFTER INSERT ON message_quoted_event_invite
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'message_quoted_event_invite')
-          AND
-          (table_row_id = NEW.message_row_id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('INSERT', 'message_quoted_event_invite', NEW.message_row_id)
-      ;
-        END;
-CREATE TRIGGER message_quoted_event_invite_update_for_backup_changes_trigger
-        AFTER UPDATE ON message_quoted_event_invite
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'message_quoted_event_invite')
-          AND
-          (table_row_id = NEW.message_row_id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('UPDATE', 'message_quoted_event_invite', NEW.message_row_id)
-      ;
-        END;
-CREATE INDEX chat_ephemeral_after_read_duration_index
-            ON chat (ephemeral_after_read_duration)
-            WHERE ephemeral_after_read_duration > 0;
+CREATE TRIGGER chat_bd_for_auth_agent_chat_metadata_trigger
+            BEFORE DELETE ON chat
+            BEGIN
+              DELETE FROM
+                auth_agent_chat_metadata
+              WHERE
+                chat_row_id=old._id;
+            END;
+CREATE TRIGGER newsletter_bd_for_newsletter_jarvis_config_trigger BEFORE DELETE ON newsletter BEGIN DELETE FROM newsletter_jarvis_config WHERE chat_row_id=old.chat_row_id; END;
