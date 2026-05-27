@@ -58,7 +58,7 @@ CREATE TABLE message_newsletter_admin_invite(message_row_id INTEGER PRIMARY KEY,
 CREATE TABLE message_system_with_group_nodes(message_row_id INTEGER NOT NULL,group_jid_row_id INTEGER NOT NULL,group_node_type INTEGER NOT NULL,group_subject TEXT,version INTEGER,PRIMARY KEY (message_row_id, group_jid_row_id, group_node_type));
 CREATE TABLE message_scheduled_call(message_row_id INTEGER PRIMARY KEY,scheduled_timestamp_ms INTEGER,call_type INTEGER,title TEXT);
 CREATE TABLE message_system_initial_privacy_provider(message_row_id INTEGER PRIMARY KEY,privacy_provider INTEGER NOT NULL DEFAULT 0,verified_biz_name TEXT,biz_state_id INTEGER, is_deprecated INTEGER);
-CREATE TABLE group_participant_device(_id INTEGER PRIMARY KEY AUTOINCREMENT,group_participant_row_id INTEGER NOT NULL,device_jid_row_id INTEGER NOT NULL,sent_sender_key INTEGER,sent_add_on_sender_key INTEGER);
+CREATE TABLE group_participant_device(_id INTEGER PRIMARY KEY AUTOINCREMENT,group_participant_row_id INTEGER NOT NULL,device_jid_row_id INTEGER NOT NULL,sent_sender_key INTEGER,sent_add_on_sender_key INTEGER, sent_sender_key_bucket TEXT);
 CREATE TABLE pay_transaction(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,remote_jid_row_id INTEGER,key_id TEXT,interop_id TEXT,id TEXT,timestamp INTEGER,status INTEGER,error_code TEXT,sender_jid_row_id INTEGER,receiver_jid_row_id INTEGER,type INTEGER,currency_code TEXT,amount_1000,credential_id TEXT,methods TEXT,bank_transaction_id TEXT,metadata TEXT,init_timestamp INTEGER,request_key_id TEXT,country TEXT,version INTEGER,future_data BLOB,service_id INTEGER,background_id TEXT,purchase_initiator INTEGER);
 CREATE TABLE message_add_on_scheduled_call_edit(message_add_on_row_id INTEGER PRIMARY KEY,edit_type INTEGER NOT NULL DEFAULT 0,message_edit_version INTEGER);
 CREATE TABLE group_past_participant_user(_id INTEGER PRIMARY KEY AUTOINCREMENT,group_jid_row_id INTEGER NOT NULL,user_jid_row_id INTEGER NOT NULL,is_leave INTEGER NOT NULL,timestamp INTEGER);
@@ -3402,6 +3402,16 @@ CREATE INDEX chat_ephemeral_after_read_duration_index
             WHERE ephemeral_after_read_duration > 0;
 CREATE TABLE auth_agent_chat_metadata(chat_row_id INTEGER PRIMARY KEY,parent_company_name TEXT,oba_phone_number TEXT);
 CREATE TABLE newsletter_jarvis_config(chat_row_id INTEGER PRIMARY KEY,config_json TEXT NOT NULL);
+CREATE TRIGGER chat_bd_for_auth_agent_chat_metadata_trigger
+            BEFORE DELETE ON chat
+            BEGIN
+              DELETE FROM
+                auth_agent_chat_metadata
+              WHERE
+                chat_row_id=old._id;
+            END;
+CREATE TRIGGER newsletter_bd_for_newsletter_jarvis_config_trigger BEFORE DELETE ON newsletter BEGIN DELETE FROM newsletter_jarvis_config WHERE chat_row_id=old.chat_row_id; END;
+CREATE TABLE manual_user_group_bucket(row_id INTEGER PRIMARY KEY AUTOINCREMENT,user_jid_row_id INTEGER NOT NULL,multi_participant_jid_row_id INTEGER NOT NULL,status_audience TEXT NOT NULL DEFAULT '',bucket TEXT NOT NULL);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3789,12 +3799,11 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER chat_bd_for_auth_agent_chat_metadata_trigger
-            BEFORE DELETE ON chat
-            BEGIN
-              DELETE FROM
-                auth_agent_chat_metadata
-              WHERE
-                chat_row_id=old._id;
-            END;
-CREATE TRIGGER newsletter_bd_for_newsletter_jarvis_config_trigger BEFORE DELETE ON newsletter BEGIN DELETE FROM newsletter_jarvis_config WHERE chat_row_id=old.chat_row_id; END;
+CREATE TRIGGER group_participant_user_bd_for_manual_user_group_bucket_trigger BEFORE DELETE ON group_participant_user BEGIN DELETE FROM manual_user_group_bucket WHERE user_jid_row_id=old.user_jid_row_id AND multi_participant_jid_row_id=old.group_jid_row_id; END;
+CREATE UNIQUE INDEX manual_user_group_bucket_idx
+            ON manual_user_group_bucket (
+              user_jid_row_id,
+              multi_participant_jid_row_id,
+              status_audience
+            );
+CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
