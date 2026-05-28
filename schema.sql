@@ -3806,4 +3806,3 @@ CREATE UNIQUE INDEX manual_user_group_bucket_idx
               multi_participant_jid_row_id,
               status_audience
             );
-CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
