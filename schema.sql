@@ -137,7 +137,7 @@ CREATE TABLE premium_message_info(message_row_id INTEGER PRIMARY KEY,campaign_id
 CREATE TABLE message_template_button(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,text_data TEXT NOT NULL,extra_data TEXT,button_type INTEGER,used INTEGER,selected_index INTEGER,selected_carousel_card_index INTEGER,otp_button_type INTEGER,extra_consent_data TEXT,otp_matched_package_name TEXT,webview_presentation INTEGER, webview_interaction INTEGER);
 CREATE TABLE message_location(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER,latitude REAL,longitude REAL,place_name TEXT,place_address TEXT,url TEXT,live_location_share_duration INTEGER,live_location_sequence_number INTEGER,live_location_final_latitude REAL,live_location_final_longitude REAL,live_location_final_timestamp INTEGER,map_download_status INTEGER);
 CREATE TABLE message_status_psa_campaign(message_row_id INTEGER PRIMARY KEY,campaign_id TEXT,duration INTEGER,first_seen_timestamp INTEGER,action_link_url TEXT,action_link_button_title TEXT);
-CREATE TABLE frequent(_id INTEGER PRIMARY KEY AUTOINCREMENT,jid_row_id INTEGER NOT NULL,type INTEGER NOT NULL,message_count INTEGER NOT NULL, forward_count INTEGER, share_count INTEGER);
+CREATE TABLE frequent(_id INTEGER PRIMARY KEY AUTOINCREMENT,jid_row_id INTEGER NOT NULL,type INTEGER NOT NULL,message_count INTEGER NOT NULL, forward_count INTEGER, share_count INTEGER, cross_app_share_count INTEGER);
 CREATE TABLE media_hash_thumbnail(media_hash TEXT PRIMARY KEY,thumbnail BLOB);
 CREATE TABLE data_sharing_disclosure_metadata(message_row_id INTEGER PRIMARY KEY,show_mm_disclosure BOOLEAN);
 CREATE TABLE agent_message_attribution(message_row_id INTEGER PRIMARY KEY,agent_id TEXT NOT NULL);
@@ -3081,7 +3081,7 @@ CREATE INDEX ghs_reporting_info_message_row_id_index
           ON group_history_share_reporting_info (message_row_id);
 CREATE TABLE feature_key_store(_id INTEGER PRIMARY KEY AUTOINCREMENT,key_id TEXT NOT NULL,key BLOB,key_type INTEGER NOT NULL,creation_timestamp INTEGER NOT NULL,expiry_timestamp INTEGER, key_jid TEXT NOT NULL DEFAULT '');
 CREATE TABLE message_ai_media_collection(message_row_id INTEGER PRIMARY KEY,collection_id TEXT,expected_media_count INTEGER,has_global_caption INTEGER);
-CREATE TABLE message_conditional_reveal(message_row_id INTEGER PRIMARY KEY,enc_payload BLOB,enc_iv BLOB,proto_data BLOB,reveal_key_index INTEGER,conditional_reveal_type INTEGER, stanza_data BLOB, key_id TEXT, key_jid TEXT, reporting_token_info BLOB, chat_row_id INTEGER, from_me INTEGER);
+CREATE TABLE message_conditional_reveal(message_row_id INTEGER PRIMARY KEY,enc_payload BLOB,enc_iv BLOB,proto_data BLOB,reveal_key_index INTEGER,conditional_reveal_type INTEGER, stanza_data BLOB, key_id TEXT, key_jid TEXT, reporting_token_info BLOB, chat_row_id INTEGER, from_me INTEGER, scheduled_time INTEGER);
 CREATE VIRTUAL TABLE ai_thread_info_fts USING FTS4 (
             search_content
           )
@@ -3412,6 +3412,14 @@ CREATE TRIGGER chat_bd_for_auth_agent_chat_metadata_trigger
             END;
 CREATE TRIGGER newsletter_bd_for_newsletter_jarvis_config_trigger BEFORE DELETE ON newsletter BEGIN DELETE FROM newsletter_jarvis_config WHERE chat_row_id=old.chat_row_id; END;
 CREATE TABLE manual_user_group_bucket(row_id INTEGER PRIMARY KEY AUTOINCREMENT,user_jid_row_id INTEGER NOT NULL,multi_participant_jid_row_id INTEGER NOT NULL,status_audience TEXT NOT NULL DEFAULT '',bucket TEXT NOT NULL);
+CREATE TRIGGER group_participant_user_bd_for_manual_user_group_bucket_trigger BEFORE DELETE ON group_participant_user BEGIN DELETE FROM manual_user_group_bucket WHERE user_jid_row_id=old.user_jid_row_id AND multi_participant_jid_row_id=old.group_jid_row_id; END;
+CREATE UNIQUE INDEX manual_user_group_bucket_idx
+            ON manual_user_group_bucket (
+              user_jid_row_id,
+              multi_participant_jid_row_id,
+              status_audience
+            );
+CREATE TABLE aea_chat_state(chat_row_id INTEGER PRIMARY KEY NOT NULL,cooldown_state INTEGER NOT NULL,cooldown_started_at INTEGER NOT NULL);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3799,10 +3807,11 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER group_participant_user_bd_for_manual_user_group_bucket_trigger BEFORE DELETE ON group_participant_user BEGIN DELETE FROM manual_user_group_bucket WHERE user_jid_row_id=old.user_jid_row_id AND multi_participant_jid_row_id=old.group_jid_row_id; END;
-CREATE UNIQUE INDEX manual_user_group_bucket_idx
-            ON manual_user_group_bucket (
-              user_jid_row_id,
-              multi_participant_jid_row_id,
-              status_audience
-            );
+CREATE TRIGGER chat_bd_for_aea_chat_state_trigger
+            BEFORE DELETE ON chat
+            BEGIN
+              DELETE FROM
+                aea_chat_state
+              WHERE
+                chat_row_id=old._id;
+            END;
