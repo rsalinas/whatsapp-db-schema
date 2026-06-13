@@ -3062,7 +3062,7 @@ CREATE INDEX interactive_message_header_content_message_row_id_index
             ON interactive_message_header_content (message_row_id);
 CREATE UNIQUE INDEX interactive_message_sections_unique_index
             ON interactive_message_sections (message_row_id, section_index, item_index);
-CREATE TABLE interactive_message_bloks_widget(_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,message_row_id INTEGER NOT NULL,uuid TEXT,data TEXT,type TEXT);
+CREATE TABLE interactive_message_bloks_widget(_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,message_row_id INTEGER NOT NULL,uuid TEXT,data TEXT,type TEXT, fallback TEXT);
 CREATE TRIGGER message_bd_for_interactive_message_bloks_widget_trigger BEFORE DELETE ON message BEGIN DELETE FROM interactive_message_bloks_widget WHERE message_row_id=old._id; END;
 CREATE UNIQUE INDEX interactive_message_bloks_widget_message_row_id_index
             ON interactive_message_bloks_widget (message_row_id);
@@ -3420,6 +3420,14 @@ CREATE UNIQUE INDEX manual_user_group_bucket_idx
               status_audience
             );
 CREATE TABLE aea_chat_state(chat_row_id INTEGER PRIMARY KEY NOT NULL,cooldown_state INTEGER NOT NULL,cooldown_started_at INTEGER NOT NULL);
+CREATE TRIGGER chat_bd_for_aea_chat_state_trigger
+            BEFORE DELETE ON chat
+            BEGIN
+              DELETE FROM
+                aea_chat_state
+              WHERE
+                chat_row_id=old._id;
+            END;
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3458,7 +3466,7 @@ CREATE VIEW available_message_view AS
               ON message._id = message_ephemeral.message_row_id
             WHERE
               IFNULL(NOT(
-            
+                
             (
                 IFNULL(message.starred, 0) = 0
                 AND
@@ -3466,8 +3474,8 @@ CREATE VIEW available_message_view AS
                     IFNULL(job.deleted_message_row_id, -9223372036854775808)
             )
         
-            OR
-            
+                OR
+                
             (
                 IFNULL(message.starred, 0) = 1
                 AND
@@ -3475,8 +3483,8 @@ CREATE VIEW available_message_view AS
                     IFNULL(job.deleted_starred_message_row_id, -9223372036854775808)
             )
         
-            OR
-            
+                OR
+                
             (
                 (job.deleted_message_categories IS NOT NULL)
                 AND
@@ -3504,12 +3512,12 @@ CREATE VIEW available_message_view AS
                 )
             )                    
         
-            OR
-            
+                OR
+                
             (
                 (job.singular_message_delete_rows_id IS NOT NULL)
                 AND
-                (job.singular_message_delete_rows_id 
+                (job.singular_message_delete_rows_id
                     LIKE '%"' || message._id || '"%')
             )
         
@@ -3618,7 +3626,10 @@ CREATE VIEW deleted_messages_view AS
               ON job.chat_row_id = message.chat_row_id
           WHERE
             IFNULL(
-            
+            (
+                (
+                    
+                
             (
                 IFNULL(message.starred, 0) = 0
                 AND
@@ -3626,8 +3637,8 @@ CREATE VIEW deleted_messages_view AS
                     IFNULL(job.deleted_message_row_id, -9223372036854775808)
             )
         
-            OR
-            
+                OR
+                
             (
                 IFNULL(message.starred, 0) = 1
                 AND
@@ -3635,8 +3646,8 @@ CREATE VIEW deleted_messages_view AS
                     IFNULL(job.deleted_starred_message_row_id, -9223372036854775808)
             )
         
-            OR
-            
+                OR
+                
             (
                 (job.deleted_message_categories IS NOT NULL)
                 AND
@@ -3664,15 +3675,24 @@ CREATE VIEW deleted_messages_view AS
                 )
             )                    
         
-            OR
-            
+                OR
+                
             (
                 (job.singular_message_delete_rows_id IS NOT NULL)
                 AND
-                (job.singular_message_delete_rows_id 
+                (job.singular_message_delete_rows_id
                     LIKE '%"' || message._id || '"%')
             )
         
+        
+                )
+                AND
+                
+            (
+                (IFNULL(message.origination_flags, 0) & 1099511627776) = 0
+            )
+        
+          )
         , 0)
           ORDER BY message._id
 /* deleted_messages_view(_id,sort_id,chat_row_id,from_me,key_id,sender_jid_row_id,status,broadcast,recipient_count,participant_hash,origination_flags,origin,timestamp,received_timestamp,receipt_server_timestamp,message_type,text_data,translated_text,starred,lookup_tables,message_add_on_flags,view_mode,remove_files,view_replies_thread_id,server_sts) */;
@@ -3688,7 +3708,10 @@ CREATE VIEW deleted_messages_ids_view AS
               ON job.chat_row_id = message.chat_row_id
           WHERE
             IFNULL(
-            
+            (
+                (
+                    
+                
             (
                 IFNULL(message.starred, 0) = 0
                 AND
@@ -3696,8 +3719,8 @@ CREATE VIEW deleted_messages_ids_view AS
                     IFNULL(job.deleted_message_row_id, -9223372036854775808)
             )
         
-            OR
-            
+                OR
+                
             (
                 IFNULL(message.starred, 0) = 1
                 AND
@@ -3705,8 +3728,8 @@ CREATE VIEW deleted_messages_ids_view AS
                     IFNULL(job.deleted_starred_message_row_id, -9223372036854775808)
             )
         
-            OR
-            
+                OR
+                
             (
                 (job.deleted_message_categories IS NOT NULL)
                 AND
@@ -3734,15 +3757,24 @@ CREATE VIEW deleted_messages_ids_view AS
                 )
             )                    
         
-            OR
-            
+                OR
+                
             (
                 (job.singular_message_delete_rows_id IS NOT NULL)
                 AND
-                (job.singular_message_delete_rows_id 
+                (job.singular_message_delete_rows_id
                     LIKE '%"' || message._id || '"%')
             )
         
+        
+                )
+                AND
+                
+            (
+                (IFNULL(message.origination_flags, 0) & 1099511627776) = 0
+            )
+        
+          )
         , 0)
 /* deleted_messages_ids_view(_id,sort_id,chat_row_id,message_type) */;
 CREATE VIEW chat_view AS
@@ -3807,11 +3839,3 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER chat_bd_for_aea_chat_state_trigger
-            BEFORE DELETE ON chat
-            BEGIN
-              DELETE FROM
-                aea_chat_state
-              WHERE
-                chat_row_id=old._id;
-            END;
