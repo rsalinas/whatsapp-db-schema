@@ -46,7 +46,7 @@ CREATE TABLE message_quoted_product(message_row_id INTEGER PRIMARY KEY,business_
 CREATE TABLE messages_hydrated_four_row_template(message_row_id INTEGER PRIMARY KEY,message_template_id TEXT);
 CREATE TABLE message_text(message_row_id INTEGER PRIMARY KEY,description TEXT,page_title TEXT,url TEXT,font_style INTEGER,text_color INTEGER,background_color INTEGER,preview_type INTEGER,invite_link_group_type INTEGER NOT NULL DEFAULT 0,counter_abuse_token TEXT, fb_experiment_id INTEGER, social_media_post_type INTEGER, link_media_duration_seconds INTEGER, link_end_index INTEGER);
 CREATE TABLE priority_inbox(_id INTEGER PRIMARY KEY AUTOINCREMENT,priority_score DOUBLE NOT NULL,version INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,is_priority BOOLEAN,label_removed BOOLEAN,time_created INTEGER,deep_conversion_rate BOOLEAN);
-CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT, metrics_metadata_json TEXT, bot_deep_link_token TEXT, ai_media_collection_metadata_json TEXT, signature_validation_status INTEGER, tool_calls_blob BLOB, bot_history_share_json TEXT);
+CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT, metrics_metadata_json TEXT, bot_deep_link_token TEXT, ai_media_collection_metadata_json TEXT, signature_validation_status INTEGER, tool_calls_blob BLOB, bot_history_share_json TEXT, bot_client_public_key TEXT);
 CREATE TABLE quick_reply_attachments(_id INTEGER PRIMARY KEY AUTOINCREMENT,quick_reply_id TEXT NOT NULL,uri TEXT NOT NULL,caption TEXT,media_type INTEGER);
 CREATE TABLE message_details(message_row_id INTEGER PRIMARY KEY,author_device_jid INTEGER);
 CREATE TABLE message_quoted_payment_invite(message_row_id INTEGER PRIMARY KEY,service INTEGER,expiration_timestamp INTEGER, incentive_eligible INTEGER, referral_id TEXT, invite_type INTEGER);
@@ -3429,6 +3429,10 @@ CREATE TRIGGER chat_bd_for_aea_chat_state_trigger
                 chat_row_id=old._id;
             END;
 CREATE TABLE newsletter_media_clear(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,media_type INTEGER NOT NULL,cutoff_sort_id INTEGER NOT NULL);
+CREATE TRIGGER chat_bd_for_newsletter_media_clear_trigger BEFORE DELETE ON chat BEGIN DELETE FROM newsletter_media_clear WHERE chat_row_id=old._id; END;
+CREATE UNIQUE INDEX newsletter_media_clear_unique_index
+            ON newsletter_media_clear (chat_row_id, media_type);
+CREATE TABLE poll_name_hash_history(_id INTEGER PRIMARY KEY AUTOINCREMENT,poll_message_row_id INTEGER NOT NULL,edit_stanza_id TEXT NOT NULL,poll_name_hash BLOB NOT NULL);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3840,6 +3844,32 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER chat_bd_for_newsletter_media_clear_trigger BEFORE DELETE ON chat BEGIN DELETE FROM newsletter_media_clear WHERE chat_row_id=old._id; END;
-CREATE UNIQUE INDEX newsletter_media_clear_unique_index
-            ON newsletter_media_clear (chat_row_id, media_type);
+CREATE TRIGGER message_bd_for_poll_name_hash_history_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_name_hash_history WHERE poll_message_row_id=old._id; END;
+CREATE TRIGGER poll_name_hash_history_insert_for_backup_changes_trigger
+      AFTER INSERT ON poll_name_hash_history
+      BEGIN
+        
+          DELETE FROM 
+            backup_changes
+          WHERE
+            (table_name = 'message') 
+            AND
+            (table_row_id = NEW.poll_message_row_id)
+            AND
+            (
+              (operation = 'INSERT')
+              OR
+              (operation = 'UPDATE')
+            )
+          ;
+        
+        INSERT INTO 
+          backup_changes (operation, table_name, table_row_id)
+        VALUES ('INSERT', 'message', NEW.poll_message_row_id)
+      ;
+      END;
+CREATE UNIQUE INDEX poll_name_hash_history_lookup_idx
+            ON poll_name_hash_history (poll_message_row_id, edit_stanza_id);
+CREATE INDEX message_ephemeral_keep_in_chat_index
+            ON message_ephemeral (keep_in_chat)
+            WHERE keep_in_chat = 1;
