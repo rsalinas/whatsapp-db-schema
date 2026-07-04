@@ -77,3 +77,9 @@ shared chat at once — pure noise for browsing, filter it out) · `9` document 
 - `chatsettingsbackup.db`, `status_backup.db`, `stickers_db.bak`,
   `commerce_backup.db`, `backup_settings.json` — settings & small state,
   all encrypted with the same account key.
+
+### Pushnames are masked in backups
+- `lid_display_name` looks promising for showing the name each contact set
+  for themselves, but in `.crypt15` backups every row arrives masked
+  (`+34∙∙∙∙∙∙∙21`) — verified on 2024 and 2026 snapshots. Display names must
+  come from the phone address book (or `wa.db` when populated), not from here.
