@@ -3433,6 +3433,35 @@ CREATE TRIGGER chat_bd_for_newsletter_media_clear_trigger BEFORE DELETE ON chat 
 CREATE UNIQUE INDEX newsletter_media_clear_unique_index
             ON newsletter_media_clear (chat_row_id, media_type);
 CREATE TABLE poll_name_hash_history(_id INTEGER PRIMARY KEY AUTOINCREMENT,poll_message_row_id INTEGER NOT NULL,edit_stanza_id TEXT NOT NULL,poll_name_hash BLOB NOT NULL);
+CREATE TRIGGER message_bd_for_poll_name_hash_history_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_name_hash_history WHERE poll_message_row_id=old._id; END;
+CREATE TRIGGER poll_name_hash_history_insert_for_backup_changes_trigger
+      AFTER INSERT ON poll_name_hash_history
+      BEGIN
+        
+          DELETE FROM 
+            backup_changes
+          WHERE
+            (table_name = 'message') 
+            AND
+            (table_row_id = NEW.poll_message_row_id)
+            AND
+            (
+              (operation = 'INSERT')
+              OR
+              (operation = 'UPDATE')
+            )
+          ;
+        
+        INSERT INTO 
+          backup_changes (operation, table_name, table_row_id)
+        VALUES ('INSERT', 'message', NEW.poll_message_row_id)
+      ;
+      END;
+CREATE UNIQUE INDEX poll_name_hash_history_lookup_idx
+            ON poll_name_hash_history (poll_message_row_id, edit_stanza_id);
+CREATE INDEX message_ephemeral_keep_in_chat_index
+            ON message_ephemeral (keep_in_chat)
+            WHERE keep_in_chat = 1;
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3844,32 +3873,10 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER message_bd_for_poll_name_hash_history_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_name_hash_history WHERE poll_message_row_id=old._id; END;
-CREATE TRIGGER poll_name_hash_history_insert_for_backup_changes_trigger
-      AFTER INSERT ON poll_name_hash_history
-      BEGIN
-        
-          DELETE FROM 
-            backup_changes
-          WHERE
-            (table_name = 'message') 
-            AND
-            (table_row_id = NEW.poll_message_row_id)
-            AND
-            (
-              (operation = 'INSERT')
-              OR
-              (operation = 'UPDATE')
-            )
-          ;
-        
-        INSERT INTO 
-          backup_changes (operation, table_name, table_row_id)
-        VALUES ('INSERT', 'message', NEW.poll_message_row_id)
-      ;
-      END;
-CREATE UNIQUE INDEX poll_name_hash_history_lookup_idx
-            ON poll_name_hash_history (poll_message_row_id, edit_stanza_id);
-CREATE INDEX message_ephemeral_keep_in_chat_index
-            ON message_ephemeral (keep_in_chat)
-            WHERE keep_in_chat = 1;
+CREATE INDEX manual_group_audience_bucket_idx
+            ON manual_user_group_bucket (
+              multi_participant_jid_row_id,
+              status_audience,
+              bucket
+            );
+CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
