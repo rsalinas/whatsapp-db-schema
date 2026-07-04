@@ -3879,4 +3879,3 @@ CREATE INDEX manual_group_audience_bucket_idx
               status_audience,
               bucket
             );
-CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
