@@ -3457,6 +3457,99 @@ CREATE INDEX message_ephemeral_keep_in_chat_index
             WHERE keep_in_chat = 1;
 CREATE TABLE newsletter_pinned_message(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER NOT NULL,server_message_id INTEGER NOT NULL,expiry_ts_seconds INTEGER NOT NULL,pin_timestamp_ms INTEGER NOT NULL);
 CREATE TABLE poll_vote_pending(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,from_me INTEGER NOT NULL,key_id TEXT NOT NULL,sender_jid_row_id INTEGER NOT NULL,message_timestamp_ms INTEGER NOT NULL,poll_message_row_id INTEGER NOT NULL,dependency_type INTEGER NOT NULL,dependency_id TEXT NOT NULL,metadata_edit_stanza_id TEXT,metadata_poll_name_hash BLOB,selected_option_hashes BLOB NOT NULL,sender_timestamp_ms INTEGER NOT NULL,unread INTEGER NOT NULL,created_timestamp_ms INTEGER NOT NULL);
+CREATE TRIGGER message_bd_for_newsletter_pinned_message_trigger BEFORE DELETE ON message BEGIN DELETE FROM newsletter_pinned_message WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_poll_vote_pending_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_vote_pending WHERE poll_message_row_id=old._id; END;
+CREATE TRIGGER poll_vote_pending_delete_for_backup_changes_trigger
+      AFTER DELETE ON poll_vote_pending
+      BEGIN
+        
+          DELETE FROM
+            backup_changes
+          WHERE
+            (table_name = 'message')
+            AND
+            (table_row_id = OLD.poll_message_row_id)
+            AND
+            (
+              (operation = 'INSERT')
+              OR
+              (operation = 'UPDATE')
+            )
+          ;
+        
+        INSERT INTO
+          backup_changes (operation, table_name, table_row_id)
+        VALUES ('UPDATE', 'message', OLD.poll_message_row_id)
+      ;
+      END;
+CREATE TRIGGER poll_vote_pending_insert_for_backup_changes_trigger
+      AFTER INSERT ON poll_vote_pending
+      BEGIN
+        
+          DELETE FROM
+            backup_changes
+          WHERE
+            (table_name = 'message')
+            AND
+            (table_row_id = NEW.poll_message_row_id)
+            AND
+            (
+              (operation = 'INSERT')
+              OR
+              (operation = 'UPDATE')
+            )
+          ;
+        
+        INSERT INTO
+          backup_changes (operation, table_name, table_row_id)
+        VALUES ('UPDATE', 'message', NEW.poll_message_row_id)
+      ;
+      END;
+CREATE TRIGGER poll_vote_pending_update_for_backup_changes_trigger
+      AFTER UPDATE ON poll_vote_pending
+      BEGIN
+        
+          DELETE FROM
+            backup_changes
+          WHERE
+            (table_name = 'message')
+            AND
+            (table_row_id = NEW.poll_message_row_id)
+            AND
+            (
+              (operation = 'INSERT')
+              OR
+              (operation = 'UPDATE')
+            )
+          ;
+        
+        INSERT INTO
+          backup_changes (operation, table_name, table_row_id)
+        VALUES ('UPDATE', 'message', NEW.poll_message_row_id)
+      ;
+      END;
+CREATE INDEX newsletter_pinned_message_chat_pin_time_index
+          ON newsletter_pinned_message (chat_row_id, pin_timestamp_ms);
+CREATE INDEX poll_vote_pending_created_timestamp
+            ON poll_vote_pending (created_timestamp_ms);
+CREATE INDEX poll_vote_pending_dependency
+            ON poll_vote_pending (
+              poll_message_row_id,
+              dependency_type,
+              dependency_id
+            );
+CREATE UNIQUE INDEX poll_vote_pending_key
+            ON poll_vote_pending (
+              chat_row_id,
+              from_me,
+              key_id,
+              sender_jid_row_id
+            );
+CREATE UNIQUE INDEX poll_vote_pending_sender
+            ON poll_vote_pending (
+              poll_message_row_id,
+              sender_jid_row_id
+            );
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3868,96 +3961,4 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER message_bd_for_newsletter_pinned_message_trigger BEFORE DELETE ON message BEGIN DELETE FROM newsletter_pinned_message WHERE message_row_id=old._id; END;
-CREATE TRIGGER message_bd_for_poll_vote_pending_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_vote_pending WHERE poll_message_row_id=old._id; END;
-CREATE TRIGGER poll_vote_pending_delete_for_backup_changes_trigger
-      AFTER DELETE ON poll_vote_pending
-      BEGIN
-        
-          DELETE FROM
-            backup_changes
-          WHERE
-            (table_name = 'message')
-            AND
-            (table_row_id = OLD.poll_message_row_id)
-            AND
-            (
-              (operation = 'INSERT')
-              OR
-              (operation = 'UPDATE')
-            )
-          ;
-        
-        INSERT INTO
-          backup_changes (operation, table_name, table_row_id)
-        VALUES ('UPDATE', 'message', OLD.poll_message_row_id)
-      ;
-      END;
-CREATE TRIGGER poll_vote_pending_insert_for_backup_changes_trigger
-      AFTER INSERT ON poll_vote_pending
-      BEGIN
-        
-          DELETE FROM
-            backup_changes
-          WHERE
-            (table_name = 'message')
-            AND
-            (table_row_id = NEW.poll_message_row_id)
-            AND
-            (
-              (operation = 'INSERT')
-              OR
-              (operation = 'UPDATE')
-            )
-          ;
-        
-        INSERT INTO
-          backup_changes (operation, table_name, table_row_id)
-        VALUES ('UPDATE', 'message', NEW.poll_message_row_id)
-      ;
-      END;
-CREATE TRIGGER poll_vote_pending_update_for_backup_changes_trigger
-      AFTER UPDATE ON poll_vote_pending
-      BEGIN
-        
-          DELETE FROM
-            backup_changes
-          WHERE
-            (table_name = 'message')
-            AND
-            (table_row_id = NEW.poll_message_row_id)
-            AND
-            (
-              (operation = 'INSERT')
-              OR
-              (operation = 'UPDATE')
-            )
-          ;
-        
-        INSERT INTO
-          backup_changes (operation, table_name, table_row_id)
-        VALUES ('UPDATE', 'message', NEW.poll_message_row_id)
-      ;
-      END;
-CREATE INDEX newsletter_pinned_message_chat_pin_time_index
-          ON newsletter_pinned_message (chat_row_id, pin_timestamp_ms);
-CREATE INDEX poll_vote_pending_created_timestamp
-            ON poll_vote_pending (created_timestamp_ms);
-CREATE INDEX poll_vote_pending_dependency
-            ON poll_vote_pending (
-              poll_message_row_id,
-              dependency_type,
-              dependency_id
-            );
-CREATE UNIQUE INDEX poll_vote_pending_key
-            ON poll_vote_pending (
-              chat_row_id,
-              from_me,
-              key_id,
-              sender_jid_row_id
-            );
-CREATE UNIQUE INDEX poll_vote_pending_sender
-            ON poll_vote_pending (
-              poll_message_row_id,
-              sender_jid_row_id
-            );
+CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
