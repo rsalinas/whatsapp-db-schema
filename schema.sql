@@ -3044,8 +3044,8 @@ CREATE INDEX recent_selected_search_timestamp_index
                 recently_selected_search_table (search_timestamp);
 CREATE INDEX ai_thread_info_origin_chat_row_id_index
           ON ai_thread_info(origin_chat_row_id);
-CREATE TABLE message_biz_context_info(message_row_id INTEGER PRIMARY KEY,weblink_render_config INTEGER);
-CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,chat_request_type TEXT NOT NULL, anchor_message_row_id INTEGER);
+CREATE TABLE message_biz_context_info(message_row_id INTEGER PRIMARY KEY,weblink_render_config INTEGER, business_interaction_pills BLOB);
+CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,chat_request_type TEXT NOT NULL, anchor_message_row_id INTEGER, node_token TEXT);
 CREATE TRIGGER message_bd_for_message_biz_context_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_biz_context_info WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_tee_chat_request_table_trigger BEFORE DELETE ON message BEGIN DELETE FROM tee_chat_request_table WHERE message_row_id=old._id; END;
 CREATE TABLE message_system_side_chat_privacy(message_row_id INTEGER PRIMARY KEY,origin_chat_row_id INTEGER NOT NULL);
@@ -3550,6 +3550,7 @@ CREATE UNIQUE INDEX poll_vote_pending_sender
               poll_message_row_id,
               sender_jid_row_id
             );
+CREATE TABLE label_sublist(_id INTEGER PRIMARY KEY AUTOINCREMENT,predefined_id INTEGER NOT NULL,jid_row_id INTEGER NOT NULL,sub_list_id INTEGER NOT NULL);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3961,3 +3962,10 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
+CREATE TRIGGER composition_bd_for_draft_message_reminder_trigger BEFORE DELETE ON composition BEGIN DELETE FROM draft_message_reminder WHERE composition_row_id=old._id; END;
+CREATE TRIGGER labels_bd_for_label_sublist_trigger BEFORE DELETE ON labels BEGIN DELETE FROM label_sublist WHERE predefined_id = old.predefined_id; END;
+CREATE UNIQUE INDEX label_sublist_index
+          ON label_sublist (
+            predefined_id,
+            jid_row_id
+          );
