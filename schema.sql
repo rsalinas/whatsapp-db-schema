@@ -3107,7 +3107,7 @@ CREATE UNIQUE INDEX feature_key_store_key_jid_type_index ON feature_key_store (
 CREATE TRIGGER chat_bd_for_integrity_analysis_result_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_analysis_result WHERE chat_row_id=old._id; END;
 CREATE TRIGGER chat_bd_for_integrity_input_feature_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_input_feature WHERE chat_row_id=old._id; END;
 CREATE INDEX message_conditional_reveal_chat_row_reveal_type_from_me_index ON message_conditional_reveal (chat_row_id, conditional_reveal_type, from_me);
-CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, end_time INTEGER, call_link TEXT);
+CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, end_time INTEGER, call_link TEXT, cover_image_width INTEGER, cover_image_height INTEGER);
 CREATE TRIGGER message_bd_for_message_event_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_event_invite WHERE message_row_id=old._id; END;
 CREATE INDEX message_event_invite_event_id_index
             ON message_event_invite (event_id);
@@ -3558,6 +3558,8 @@ CREATE UNIQUE INDEX label_sublist_index
             predefined_id,
             jid_row_id
           );
+CREATE INDEX message_split_payment_participant_transaction_id_index ON message_split_payment_participant (transaction_id);
+CREATE TABLE message_music(message_row_id INTEGER PRIMARY KEY NOT NULL,song_uri TEXT,artwork_uri TEXT,style_raw_value INTEGER NOT NULL);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3969,4 +3971,7 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,jid_row_id,original_jid_row_id) */;
-CREATE INDEX message_split_payment_participant_transaction_id_index ON message_split_payment_participant (transaction_id);
+CREATE TRIGGER message_bd_for_message_media_ai_provenance_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_media_ai_provenance WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_music_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_music WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_music_bd_for_message_media_interactive_annotation_trigger BEFORE DELETE ON message_music BEGIN DELETE FROM message_media_interactive_annotation WHERE message_row_id=old.message_row_id; END;
+CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
