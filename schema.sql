@@ -3974,4 +3974,3 @@ CREATE VIEW chat_view AS
 CREATE TRIGGER message_bd_for_message_media_ai_provenance_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_media_ai_provenance WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_message_music_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_music WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_music_bd_for_message_media_interactive_annotation_trigger BEFORE DELETE ON message_music BEGIN DELETE FROM message_media_interactive_annotation WHERE message_row_id=old.message_row_id; END;
-CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
