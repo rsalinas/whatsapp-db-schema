@@ -75,7 +75,7 @@ CREATE TABLE message_system_scheduled_call_start(message_row_id INTEGER PRIMARY 
 CREATE TABLE message_ephemeral_sync_response(chat_jid TEXT PRIMARY KEY NOT NULL,last_sync_response_sent_timestamp INTEGER NOT NULL,no_of_retries_sent_already INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE message_parent_association(message_row_id INTEGER PRIMARY KEY,parent_message_row_id INTEGER NOT NULL,association_type INTEGER NOT NULL);
 CREATE TABLE payment_background(background_id TEXT PRIMARY KEY,file_size INTEGER,width INTEGER,height INTEGER,mime_type TEXT,placeholder_color INTEGER,text_color INTEGER,subtext_color INTEGER,fullsize_url TEXT,description TEXT,lg TEXT,media_key BLOB,media_key_timestamp INTEGER,file_sha256 TEXT,file_enc_sha256 TEXT,direct_path TEXT);
-CREATE TABLE message_poll_option(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,option_sha256 TEXT,option_name TEXT,vote_total INTEGER, option_hash TEXT);
+CREATE TABLE message_poll_option(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,option_sha256 TEXT,option_name TEXT,vote_total INTEGER, option_hash TEXT, contributor_jid_row_id INTEGER, added_timestamp_ms INTEGER);
 CREATE TABLE call_log(_id INTEGER PRIMARY KEY AUTOINCREMENT,jid_row_id INTEGER,from_me INTEGER,call_id TEXT,transaction_id INTEGER,timestamp INTEGER,video_call INTEGER,duration INTEGER,call_result INTEGER,is_dnd_mode_on INTEGER,bytes_transferred INTEGER,group_jid_row_id INTEGER NOT NULL DEFAULT 0,is_joinable_group_call INTEGER,call_creator_device_jid_row_id INTEGER NOT NULL DEFAULT 0,call_random_id TEXT,call_link_row_id INTEGER NOT NULL DEFAULT 0,call_type INTEGER,offer_silence_reason INTEGER,scheduled_id TEXT, telecom_uuid TEXT, terminated_by_device_switch INTEGER);
 CREATE TABLE message_forwarded(message_row_id INTEGER PRIMARY KEY,forward_score INTEGER, forward_origin INTEGER);
 CREATE TABLE newsletter_my_reaction_orphan_message(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,server_message_id INTEGER NOT NULL,reaction_from_me TEXT,reactions_from_me_ts INTEGER,votes_from_me TEXT,votes_from_me_ts INTEGER);
@@ -3044,7 +3044,7 @@ CREATE INDEX recent_selected_search_timestamp_index
                 recently_selected_search_table (search_timestamp);
 CREATE INDEX ai_thread_info_origin_chat_row_id_index
           ON ai_thread_info(origin_chat_row_id);
-CREATE TABLE message_biz_context_info(message_row_id INTEGER PRIMARY KEY,weblink_render_config INTEGER, business_interaction_pills BLOB);
+CREATE TABLE message_biz_context_info(message_row_id INTEGER PRIMARY KEY,weblink_render_config INTEGER, business_interaction_pills BLOB, preview_match_url TEXT);
 CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,chat_request_type TEXT NOT NULL, anchor_message_row_id INTEGER, node_token TEXT);
 CREATE TRIGGER message_bd_for_message_biz_context_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_biz_context_info WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_tee_chat_request_table_trigger BEFORE DELETE ON message BEGIN DELETE FROM tee_chat_request_table WHERE message_row_id=old._id; END;
@@ -3563,6 +3563,7 @@ CREATE TABLE message_music(message_row_id INTEGER PRIMARY KEY NOT NULL,song_uri 
 CREATE TRIGGER message_bd_for_message_media_ai_provenance_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_media_ai_provenance WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_message_music_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_music WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_music_bd_for_message_media_interactive_annotation_trigger BEFORE DELETE ON message_music BEGIN DELETE FROM message_media_interactive_annotation WHERE message_row_id=old.message_row_id; END;
+CREATE TABLE newsletter_admin_profile(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,admin_profile_id TEXT NOT NULL,name TEXT,picture_id TEXT,picture_direct_path TEXT,timestamp INTEGER NOT NULL);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3975,3 +3976,8 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,chat_props,jid_row_id,original_jid_row_id) */;
+CREATE TRIGGER chat_bd_for_newsletter_admin_profile_trigger BEFORE DELETE ON chat BEGIN DELETE FROM newsletter_admin_profile WHERE chat_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_experience_id_trigger BEFORE DELETE ON message BEGIN DELETE FROM experience_id WHERE message_row_id=old._id; END;
+CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
+CREATE UNIQUE INDEX newsletter_admin_profile_unique_index
+            ON newsletter_admin_profile (chat_row_id, admin_profile_id);
