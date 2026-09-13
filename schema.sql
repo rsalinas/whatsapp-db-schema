@@ -38,7 +38,7 @@ CREATE TABLE message_system_payment_invite_setup(message_row_id INTEGER PRIMARY 
 CREATE TABLE message_bot_feedback(message_row_id INTEGER PRIMARY KEY,bot_feedback_kind INTEGER NOT NULL,bot_feedback_text TEXT NOT NULL,bot_feedback_key_remote_jid TEXT NOT NULL,bot_feedback_key_from_me INTEGER NOT NULL,bot_feedback_key_id TEXT NOT NULL,bot_feedback_kind_positive INTEGER NOT NULL DEFAULT 0,bot_feedback_kind_negative INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE message_system_device_change(message_row_id INTEGER PRIMARY KEY,device_added_count INTEGER,device_removed_count INTEGER);
 CREATE TABLE bcall_session(_id INTEGER PRIMARY KEY AUTOINCREMENT,session_id TEXT NOT NULL UNIQUE,media_type INTEGER NOT NULL,caption TEXT,master_key BLOB NOT NULL);
-CREATE TABLE integrator_display_name(integrator_id INTEGER PRIMARY KEY NOT NULL,display_name TEXT NOT NULL,status INTEGER NOT NULL,icon_path TEXT NOT NULL DEFAULT '',opt_in_status INTEGER NOT NULL DEFAULT 0,identifier_type INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE integrator_display_name(integrator_id INTEGER PRIMARY KEY NOT NULL,display_name TEXT NOT NULL,status INTEGER NOT NULL,icon_path TEXT NOT NULL DEFAULT '',opt_in_status INTEGER NOT NULL DEFAULT 0,identifier_type INTEGER NOT NULL DEFAULT 0, group_messaging_supported INTEGER);
 CREATE TABLE bot_plugin_metadata(message_row_id INTEGER PRIMARY KEY,search_provider INTEGER,plugin_type INTEGER,thumbnail_cdn_url TEXT,profile_photo_cdn_url TEXT,search_provider_url TEXT,reference_index INTEGER,profile_photo_thumbnail BLOB,search_query TEXT, favicon_cdn_url TEXT);
 CREATE TABLE scheduled_calls(creation_message_row_id INTEGER PRIMARY KEY,key_id TEXT NOT NULL,key_from_me INTEGER NOT NULL,key_chat_row_id INTEGER NOT NULL,call_type INTEGER NOT NULL,scheduled_timestamp INTEGER NOT NULL,call_title TEXT NOT NULL,creator_jid_row_id INTEGER NOT NULL,is_upcoming BOOLEAN NOT NULL,call_log_row_id INTEGER);
 CREATE TABLE message_view_once_media(message_row_id INTEGER PRIMARY KEY,state INTEGER NOT NULL);
@@ -193,7 +193,7 @@ CREATE TABLE message_sticker_pack_stickers(_id INTEGER PRIMARY KEY AUTOINCREMENT
 CREATE TABLE composition(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,quoted_message_row_id INTEGER,timestamp INTEGER NOT NULL,message_type INTEGER NOT NULL,composition_type INTEGER NOT NULL,text TEXT,lookup_tables INTEGER NOT NULL DEFAULT 0, last_seen_timestamp INTEGER);
 CREATE TABLE composition_media(composition_row_id INTEGER PRIMARY KEY NOT NULL,media_uri TEXT,media_duration_in_seconds INTEGER, media_name TEXT, file_length INTEGER);
 CREATE TABLE composition_mention(_id INTEGER PRIMARY KEY AUTOINCREMENT,composition_row_id INTEGER NOT NULL,jid_row_id INTEGER NOT NULL, mention_type INTEGER);
-CREATE TABLE labels(_id INTEGER PRIMARY KEY AUTOINCREMENT,label_name TEXT,predefined_id INTEGER,color_id INTEGER,sort_id INTEGER NOT NULL DEFAULT 0, type INTEGER NOT NULL DEFAULT 0, hidden INTEGER, mute_end_time INTEGER, mute_schedule_enabled_days INTEGER, mute_schedule_time_from INTEGER, mute_schedule_time_to INTEGER, is_immutable INTEGER, is_aura_benefit_enabled INTEGER);
+CREATE TABLE labels(_id INTEGER PRIMARY KEY AUTOINCREMENT,label_name TEXT,predefined_id INTEGER,color_id INTEGER,sort_id INTEGER NOT NULL DEFAULT 0, type INTEGER NOT NULL DEFAULT 0, hidden INTEGER, mute_end_time INTEGER, mute_schedule_enabled_days INTEGER, mute_schedule_time_from INTEGER, mute_schedule_time_to INTEGER, is_immutable INTEGER, is_aura_benefit_enabled INTEGER, notification_schedule_enabled INTEGER, schedule_mute_outside_enabled INTEGER, schedule_hide_outside_enabled INTEGER);
 CREATE TABLE labeled_jid(_id INTEGER PRIMARY KEY AUTOINCREMENT,label_id INTEGER NOT NULL,jid_row_id INTEGER NOT NULL);
 CREATE TABLE message_media_interactive_annotation_embedded_music(message_media_interactive_annotation_row_id INTEGER PRIMARY KEY,music_content_media_id TEXT,song_id TEXT,author TEXT,title TEXT,artwork_direct_path TEXT,artwork_sha256 BLOB,artwork_enc_sha256 BLOB,artist_attribution TEXT,country_blocklist BLOB, artwork_media_key BLOB, is_explicit INTEGER, pending_embedded_music_type INTEGER, start_time_ms INTEGER, derived_content_start_time_ms INTEGER, overlap_duration_ms INTEGER, audio_library_product TEXT);
 CREATE TABLE message_span_indices(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,start_index INTEGER,end_index INTEGER,span_type INTEGER);
@@ -3045,7 +3045,7 @@ CREATE INDEX recent_selected_search_timestamp_index
 CREATE INDEX ai_thread_info_origin_chat_row_id_index
           ON ai_thread_info(origin_chat_row_id);
 CREATE TABLE message_biz_context_info(message_row_id INTEGER PRIMARY KEY,weblink_render_config INTEGER, business_interaction_pills BLOB, preview_match_url TEXT);
-CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,chat_request_type TEXT NOT NULL, anchor_message_row_id INTEGER, node_token TEXT);
+CREATE TABLE tee_chat_request_table(message_row_id INTEGER PRIMARY KEY NOT NULL,chat_request_type TEXT NOT NULL, anchor_message_row_id INTEGER, node_token TEXT, extra_data BLOB);
 CREATE TRIGGER message_bd_for_message_biz_context_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_biz_context_info WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_tee_chat_request_table_trigger BEFORE DELETE ON message BEGIN DELETE FROM tee_chat_request_table WHERE message_row_id=old._id; END;
 CREATE TABLE message_system_side_chat_privacy(message_row_id INTEGER PRIMARY KEY,origin_chat_row_id INTEGER NOT NULL);
@@ -3568,6 +3568,10 @@ CREATE TRIGGER chat_bd_for_newsletter_admin_profile_trigger BEFORE DELETE ON cha
 CREATE TRIGGER message_bd_for_experience_id_trigger BEFORE DELETE ON message BEGIN DELETE FROM experience_id WHERE message_row_id=old._id; END;
 CREATE UNIQUE INDEX newsletter_admin_profile_unique_index
             ON newsletter_admin_profile (chat_row_id, admin_profile_id);
+CREATE INDEX newsletter_admin_profile_timestamp_index
+            ON newsletter_admin_profile (timestamp);
+CREATE TABLE embeddings_deletion_log(_id INTEGER PRIMARY KEY,message_row_id INTEGER NOT NULL,sort_id INTEGER NOT NULL);
+CREATE TABLE label_schedule_time(_id INTEGER PRIMARY KEY AUTOINCREMENT,label_id INTEGER NOT NULL,days INTEGER,start_minutes INTEGER,end_minutes INTEGER);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3980,5 +3984,71 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,chat_props,jid_row_id,original_jid_row_id) */;
-CREATE INDEX newsletter_admin_profile_timestamp_index
-            ON newsletter_admin_profile (timestamp);
+CREATE TRIGGER label_schedule_time_delete_for_backup_changes_trigger
+        AFTER DELETE ON label_schedule_time
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'label_schedule_time')
+          AND
+          (table_row_id = OLD._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'label_schedule_time', OLD._id)
+      ;
+        END;
+CREATE TRIGGER label_schedule_time_insert_for_backup_changes_trigger
+        AFTER INSERT ON label_schedule_time
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'label_schedule_time')
+          AND
+          (table_row_id = NEW._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'label_schedule_time', NEW._id)
+      ;
+        END;
+CREATE TRIGGER label_schedule_time_update_for_backup_changes_trigger
+        AFTER UPDATE ON label_schedule_time
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'label_schedule_time')
+          AND
+          (table_row_id = NEW._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'label_schedule_time', NEW._id)
+      ;
+        END;
+CREATE TRIGGER labels_bd_for_label_schedule_time_trigger BEFORE DELETE ON labels BEGIN DELETE FROM label_schedule_time WHERE label_id = old._id; END;
+CREATE INDEX label_schedule_time_label_id_index
+          ON label_schedule_time (
+            label_id
+          );
