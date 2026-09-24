@@ -12,7 +12,7 @@ CREATE TABLE payment_background_order(background_id TEXT PRIMARY KEY,background_
 CREATE TABLE message_quoted_media(message_row_id INTEGER PRIMARY KEY,media_job_uuid TEXT,transferred INTEGER,file_path TEXT,file_size INTEGER,media_key BLOB,media_key_timestamp INTEGER,width INTEGER,height INTEGER,direct_path TEXT,message_url TEXT,mime_type TEXT,file_length INTEGER,media_name TEXT,file_hash TEXT,media_duration INTEGER,page_count INTEGER,enc_file_hash TEXT,thumbnail BLOB,media_caption TEXT, accessibility_label TEXT);
 CREATE TABLE primary_device_version(user_jid_row_id INTEGER PRIMARY KEY,version INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE message_ui_elements_reply(message_row_id INTEGER PRIMARY KEY,element_type INTEGER,reply_values TEXT,reply_description TEXT, flow_id TEXT);
-CREATE TABLE message_external_ad_content(message_row_id INTEGER PRIMARY KEY,title TEXT,body TEXT,media_type INTEGER,thumbnail_url TEXT,full_thumbnail BLOB,micro_thumbnail BLOB,media_url TEXT,source_type TEXT,source_id TEXT,source_url TEXT,render_larger_thumbnail BOOLEAN,show_ad_attribution BOOLEAN,has_icebreaker_auto_response BOOLEAN,has_click_to_call_auto_response BOOLEAN, ad_context_preview_dismissed INTEGER, source_app TEXT, automated_greeting_message_shown INTEGER, greeting_message_body TEXT, cta_payload TEXT, disable_nudge INTEGER, original_image_url TEXT, automated_greeting_message_cta_type TEXT, ctwa_clid TEXT, wtwa_ad_format BOOLEAN, ad_preview_url TEXT, wtwa_website_url TEXT, has_ctwa_flows_auto_response BOOLEAN, agm_thumbnail_strategy INTEGER, agm_title_strategy INTEGER, agm_subtitle_strategy INTEGER, agm_header_interaction_strategy INTEGER);
+CREATE TABLE message_external_ad_content(message_row_id INTEGER PRIMARY KEY,title TEXT,body TEXT,media_type INTEGER,thumbnail_url TEXT,full_thumbnail BLOB,micro_thumbnail BLOB,media_url TEXT,source_type TEXT,source_id TEXT,source_url TEXT,render_larger_thumbnail BOOLEAN,show_ad_attribution BOOLEAN,has_icebreaker_auto_response BOOLEAN,has_click_to_call_auto_response BOOLEAN, ad_context_preview_dismissed INTEGER, source_app TEXT, automated_greeting_message_shown INTEGER, greeting_message_body TEXT, cta_payload TEXT, disable_nudge INTEGER, original_image_url TEXT, automated_greeting_message_cta_type TEXT, ctwa_clid TEXT, wtwa_ad_format BOOLEAN, ad_preview_url TEXT, wtwa_website_url TEXT, has_ctwa_flows_auto_response BOOLEAN, agm_thumbnail_strategy INTEGER, agm_title_strategy INTEGER, agm_subtitle_strategy INTEGER, agm_header_interaction_strategy INTEGER, has_ctwa_flows_auto_label BOOLEAN);
 CREATE TABLE away_messages(_id INTEGER PRIMARY KEY AUTOINCREMENT,jid TEXT UNIQUE NOT NULL);
 CREATE TABLE jid_map(lid_row_id INTEGER PRIMARY KEY NOT NULL,jid_row_id INTEGER NOT NULL, sort_id INTEGER);
 CREATE TABLE message_quoted_mentions(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,jid_row_id INTEGER,display_name STRING, mention_type INTEGER);
@@ -3572,6 +3572,78 @@ CREATE INDEX newsletter_admin_profile_timestamp_index
             ON newsletter_admin_profile (timestamp);
 CREATE TABLE embeddings_deletion_log(_id INTEGER PRIMARY KEY,message_row_id INTEGER NOT NULL,sort_id INTEGER NOT NULL);
 CREATE TABLE label_schedule_time(_id INTEGER PRIMARY KEY AUTOINCREMENT,label_id INTEGER NOT NULL,days INTEGER,start_minutes INTEGER,end_minutes INTEGER);
+CREATE TRIGGER label_schedule_time_delete_for_backup_changes_trigger
+        AFTER DELETE ON label_schedule_time
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'label_schedule_time')
+          AND
+          (table_row_id = OLD._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'label_schedule_time', OLD._id)
+      ;
+        END;
+CREATE TRIGGER label_schedule_time_insert_for_backup_changes_trigger
+        AFTER INSERT ON label_schedule_time
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'label_schedule_time')
+          AND
+          (table_row_id = NEW._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'label_schedule_time', NEW._id)
+      ;
+        END;
+CREATE TRIGGER label_schedule_time_update_for_backup_changes_trigger
+        AFTER UPDATE ON label_schedule_time
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'label_schedule_time')
+          AND
+          (table_row_id = NEW._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'label_schedule_time', NEW._id)
+      ;
+        END;
+CREATE TRIGGER labels_bd_for_label_schedule_time_trigger BEFORE DELETE ON labels BEGIN DELETE FROM label_schedule_time WHERE label_id = old._id; END;
+CREATE INDEX label_schedule_time_label_id_index
+          ON label_schedule_time (
+            label_id
+          );
+CREATE TABLE message_acp2_setting(message_row_id INTEGER PRIMARY KEY,enabled INTEGER,trigger INTEGER,setting_timestamp INTEGER);
+CREATE TABLE message_appointment(message_row_id INTEGER PRIMARY KEY NOT NULL,appointment_id TEXT NOT NULL,status INTEGER NOT NULL,format INTEGER,start_time_secs INTEGER,end_time_secs INTEGER,call_link TEXT,client_note TEXT,canceled_by_business INTEGER);
+CREATE TABLE newsletter_interaction(_id INTEGER PRIMARY KEY AUTOINCREMENT,type TEXT NOT NULL,newsletter_jid_row_id INTEGER NOT NULL,timestamp_ms INTEGER NOT NULL);
+CREATE TABLE newsletter_scheduled_message(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER NOT NULL,scheduled_server_id INTEGER,publish_at_ms INTEGER NOT NULL,terminal_reason TEXT);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -3984,15 +4056,16 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,chat_props,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER label_schedule_time_delete_for_backup_changes_trigger
-        AFTER DELETE ON label_schedule_time
+CREATE TRIGGER chat_bd_for_newsletter_scheduled_message_trigger BEFORE DELETE ON chat BEGIN DELETE FROM newsletter_scheduled_message WHERE chat_row_id=old._id; END;
+CREATE TRIGGER message_appointment_delete_for_backup_changes_trigger
+        AFTER DELETE ON message_appointment
         BEGIN
           
         DELETE FROM backup_changes
         WHERE
-          (table_name = 'label_schedule_time')
+          (table_name = 'message_appointment')
           AND
-          (table_row_id = OLD._id)
+          (table_row_id = OLD.message_row_id)
           AND
           (
             (operation = 'INSERT')
@@ -4002,18 +4075,18 @@ CREATE TRIGGER label_schedule_time_delete_for_backup_changes_trigger
       ;
           
         INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('DELETE', 'label_schedule_time', OLD._id)
+        VALUES('DELETE', 'message_appointment', OLD.message_row_id)
       ;
         END;
-CREATE TRIGGER label_schedule_time_insert_for_backup_changes_trigger
-        AFTER INSERT ON label_schedule_time
+CREATE TRIGGER message_appointment_insert_for_backup_changes_trigger
+        AFTER INSERT ON message_appointment
         BEGIN
           
         DELETE FROM backup_changes
         WHERE
-          (table_name = 'label_schedule_time')
+          (table_name = 'message_appointment')
           AND
-          (table_row_id = NEW._id)
+          (table_row_id = NEW.message_row_id)
           AND
           (
             (operation = 'INSERT')
@@ -4023,18 +4096,18 @@ CREATE TRIGGER label_schedule_time_insert_for_backup_changes_trigger
       ;
           
         INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('INSERT', 'label_schedule_time', NEW._id)
+        VALUES('INSERT', 'message_appointment', NEW.message_row_id)
       ;
         END;
-CREATE TRIGGER label_schedule_time_update_for_backup_changes_trigger
-        AFTER UPDATE ON label_schedule_time
+CREATE TRIGGER message_appointment_update_for_backup_changes_trigger
+        AFTER UPDATE ON message_appointment
         BEGIN
           
         DELETE FROM backup_changes
         WHERE
-          (table_name = 'label_schedule_time')
+          (table_name = 'message_appointment')
           AND
-          (table_row_id = NEW._id)
+          (table_row_id = NEW.message_row_id)
           AND
           (
             (operation = 'INSERT')
@@ -4044,11 +4117,16 @@ CREATE TRIGGER label_schedule_time_update_for_backup_changes_trigger
       ;
           
         INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('UPDATE', 'label_schedule_time', NEW._id)
+        VALUES('UPDATE', 'message_appointment', NEW.message_row_id)
       ;
         END;
-CREATE TRIGGER labels_bd_for_label_schedule_time_trigger BEFORE DELETE ON labels BEGIN DELETE FROM label_schedule_time WHERE label_id = old._id; END;
-CREATE INDEX label_schedule_time_label_id_index
-          ON label_schedule_time (
-            label_id
-          );
+CREATE TRIGGER message_bd_for_message_acp2_setting_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_acp2_setting WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_appointment_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_appointment WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_newsletter_scheduled_message_trigger BEFORE DELETE ON message BEGIN DELETE FROM newsletter_scheduled_message WHERE message_row_id=old._id; END;
+CREATE INDEX message_appointment_appointment_id_index
+            ON message_appointment (appointment_id);
+CREATE INDEX newsletter_interaction_newsletter_timestamp_index
+            ON newsletter_interaction (newsletter_jid_row_id, timestamp_ms);
+CREATE INDEX newsletter_interaction_timestamp_ms_index
+            ON newsletter_interaction (timestamp_ms);
+CREATE UNIQUE INDEX newsletter_scheduled_message_index ON newsletter_scheduled_message (chat_row_id, scheduled_server_id);
