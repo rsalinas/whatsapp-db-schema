@@ -75,7 +75,7 @@ CREATE TABLE message_system_scheduled_call_start(message_row_id INTEGER PRIMARY 
 CREATE TABLE message_ephemeral_sync_response(chat_jid TEXT PRIMARY KEY NOT NULL,last_sync_response_sent_timestamp INTEGER NOT NULL,no_of_retries_sent_already INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE message_parent_association(message_row_id INTEGER PRIMARY KEY,parent_message_row_id INTEGER NOT NULL,association_type INTEGER NOT NULL);
 CREATE TABLE payment_background(background_id TEXT PRIMARY KEY,file_size INTEGER,width INTEGER,height INTEGER,mime_type TEXT,placeholder_color INTEGER,text_color INTEGER,subtext_color INTEGER,fullsize_url TEXT,description TEXT,lg TEXT,media_key BLOB,media_key_timestamp INTEGER,file_sha256 TEXT,file_enc_sha256 TEXT,direct_path TEXT);
-CREATE TABLE message_poll_option(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,option_sha256 TEXT,option_name TEXT,vote_total INTEGER, option_hash TEXT, contributor_jid_row_id INTEGER, added_timestamp_ms INTEGER);
+CREATE TABLE message_poll_option(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,option_sha256 TEXT,option_name TEXT,vote_total INTEGER, option_hash TEXT, contributor_jid_row_id INTEGER, added_timestamp_ms INTEGER, add_option_message_row_id INTEGER);
 CREATE TABLE call_log(_id INTEGER PRIMARY KEY AUTOINCREMENT,jid_row_id INTEGER,from_me INTEGER,call_id TEXT,transaction_id INTEGER,timestamp INTEGER,video_call INTEGER,duration INTEGER,call_result INTEGER,is_dnd_mode_on INTEGER,bytes_transferred INTEGER,group_jid_row_id INTEGER NOT NULL DEFAULT 0,is_joinable_group_call INTEGER,call_creator_device_jid_row_id INTEGER NOT NULL DEFAULT 0,call_random_id TEXT,call_link_row_id INTEGER NOT NULL DEFAULT 0,call_type INTEGER,offer_silence_reason INTEGER,scheduled_id TEXT, telecom_uuid TEXT, terminated_by_device_switch INTEGER);
 CREATE TABLE message_forwarded(message_row_id INTEGER PRIMARY KEY,forward_score INTEGER, forward_origin INTEGER);
 CREATE TABLE newsletter_my_reaction_orphan_message(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,server_message_id INTEGER NOT NULL,reaction_from_me TEXT,reactions_from_me_ts INTEGER,votes_from_me TEXT,votes_from_me_ts INTEGER);
@@ -121,7 +121,7 @@ CREATE TABLE suggest_as_you_type(message_row_id INTEGER PRIMARY KEY);
 CREATE TABLE lid_display_name(lid_row_id INTEGER PRIMARY KEY NOT NULL,display_name TEXT NOT NULL,username TEXT);
 CREATE TABLE message_system_chat_assignment(message_row_id INTEGER PRIMARY KEY,agent_name TEXT,is_unassigned_chat INTEGER);
 CREATE TABLE message_send_count(message_row_id INTEGER PRIMARY KEY,send_count INTEGER);
-CREATE TABLE message_orphaned_edit(_id INTEGER PRIMARY KEY,key_id TEXT NOT NULL,from_me INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,sender_jid_row_id INTEGER NOT NULL DEFAULT 0,timestamp INTEGER,message_type INTEGER NOT NULL,revoked_key_id TEXT,retry_count INTEGER,admin_jid_row_id INTEGER,orphan_message_data BLOB, reporting_token BLOB, reporting_tag BLOB, reporting_version INTEGER);
+CREATE TABLE message_orphaned_edit(_id INTEGER PRIMARY KEY,key_id TEXT NOT NULL,from_me INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,sender_jid_row_id INTEGER NOT NULL DEFAULT 0,timestamp INTEGER,message_type INTEGER NOT NULL,revoked_key_id TEXT,retry_count INTEGER,admin_jid_row_id INTEGER,orphan_message_data BLOB, reporting_token BLOB, reporting_tag BLOB, reporting_version INTEGER, biz_bot_thinking_state INTEGER);
 CREATE TABLE lid_chat_state(jid_row_id INTEGER PRIMARY KEY NOT NULL,is_pn_shared INTEGER NOT NULL DEFAULT 0,pn_requested_ts INTEGER NOT NULL DEFAULT 0,pnh_duplicate_lid_thread INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE chat_ephemeral(chat_row_id INTEGER PRIMARY KEY,ephemeral_trigger INTEGER,ephemeral_initiated_by_me BOOLEAN, after_read_duration INTEGER);
 CREATE TABLE backup_changes(_id INTEGER PRIMARY KEY AUTOINCREMENT,operation TEXT NOT NULL,table_name TEXT NOT NULL,table_row_id INTEGER NOT NULL);
@@ -2690,7 +2690,7 @@ CREATE INDEX mms_thumbnail_metadata_insert_timestamp_index ON mms_thumbnail_meta
 CREATE TABLE ai_rich_response_message_additional_info(message_row_id INTEGER PRIMARY KEY,ai_rich_response_additional_blob BLOB);
 CREATE TABLE url_tracking_map_element(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,original_url TEXT,consented_users_url TEXT,unconsented_users_url TEXT,card_index INTEGER);
 CREATE TABLE support_citation_metadata(message_row_id INTEGER PRIMARY KEY,help_article_citations TEXT);
-CREATE TABLE ai_rich_response_message_core_info(message_row_id INTEGER PRIMARY KEY,ai_rich_response_message_type INTEGER NOT NULL DEFAULT 0,ai_rich_response_submessage_types TEXT NOT NULL DEFAULT '',additional_table_mask INTEGER NOT NULL DEFAULT 0,ai_rich_response_core_blob BLOB, planning_status INTEGER, foa_native_data BLOB, foa_native_mutation BLOB, foa_native_mutation_extended BLOB);
+CREATE TABLE ai_rich_response_message_core_info(message_row_id INTEGER PRIMARY KEY,ai_rich_response_message_type INTEGER NOT NULL DEFAULT 0,ai_rich_response_submessage_types TEXT NOT NULL DEFAULT '',additional_table_mask INTEGER NOT NULL DEFAULT 0,ai_rich_response_core_blob BLOB, planning_status INTEGER, foa_native_data BLOB, foa_native_mutation BLOB, foa_native_mutation_extended BLOB, foa_native_original_recipient_metadata BLOB);
 CREATE TRIGGER message_bd_for_ai_rich_response_message_additional_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM ai_rich_response_message_additional_info WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_ai_rich_response_message_core_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM ai_rich_response_message_core_info WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_support_citation_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM support_citation_metadata WHERE message_row_id=old._id; END;
@@ -3644,6 +3644,76 @@ CREATE TABLE message_acp2_setting(message_row_id INTEGER PRIMARY KEY,enabled INT
 CREATE TABLE message_appointment(message_row_id INTEGER PRIMARY KEY NOT NULL,appointment_id TEXT NOT NULL,status INTEGER NOT NULL,format INTEGER,start_time_secs INTEGER,end_time_secs INTEGER,call_link TEXT,client_note TEXT,canceled_by_business INTEGER);
 CREATE TABLE newsletter_interaction(_id INTEGER PRIMARY KEY AUTOINCREMENT,type TEXT NOT NULL,newsletter_jid_row_id INTEGER NOT NULL,timestamp_ms INTEGER NOT NULL);
 CREATE TABLE newsletter_scheduled_message(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER NOT NULL,scheduled_server_id INTEGER,publish_at_ms INTEGER NOT NULL,terminal_reason TEXT);
+CREATE TRIGGER chat_bd_for_newsletter_scheduled_message_trigger BEFORE DELETE ON chat BEGIN DELETE FROM newsletter_scheduled_message WHERE chat_row_id=old._id; END;
+CREATE TRIGGER message_appointment_delete_for_backup_changes_trigger
+        AFTER DELETE ON message_appointment
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'message_appointment')
+          AND
+          (table_row_id = OLD.message_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'message_appointment', OLD.message_row_id)
+      ;
+        END;
+CREATE TRIGGER message_appointment_insert_for_backup_changes_trigger
+        AFTER INSERT ON message_appointment
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'message_appointment')
+          AND
+          (table_row_id = NEW.message_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'message_appointment', NEW.message_row_id)
+      ;
+        END;
+CREATE TRIGGER message_appointment_update_for_backup_changes_trigger
+        AFTER UPDATE ON message_appointment
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'message_appointment')
+          AND
+          (table_row_id = NEW.message_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'message_appointment', NEW.message_row_id)
+      ;
+        END;
+CREATE TRIGGER message_bd_for_message_acp2_setting_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_acp2_setting WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_appointment_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_appointment WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_newsletter_scheduled_message_trigger BEFORE DELETE ON message BEGIN DELETE FROM newsletter_scheduled_message WHERE message_row_id=old._id; END;
+CREATE INDEX message_appointment_appointment_id_index
+            ON message_appointment (appointment_id);
+CREATE UNIQUE INDEX newsletter_scheduled_message_index ON newsletter_scheduled_message (chat_row_id, scheduled_server_id);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -4056,77 +4126,3 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,chat_props,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER chat_bd_for_newsletter_scheduled_message_trigger BEFORE DELETE ON chat BEGIN DELETE FROM newsletter_scheduled_message WHERE chat_row_id=old._id; END;
-CREATE TRIGGER message_appointment_delete_for_backup_changes_trigger
-        AFTER DELETE ON message_appointment
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'message_appointment')
-          AND
-          (table_row_id = OLD.message_row_id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('DELETE', 'message_appointment', OLD.message_row_id)
-      ;
-        END;
-CREATE TRIGGER message_appointment_insert_for_backup_changes_trigger
-        AFTER INSERT ON message_appointment
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'message_appointment')
-          AND
-          (table_row_id = NEW.message_row_id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('INSERT', 'message_appointment', NEW.message_row_id)
-      ;
-        END;
-CREATE TRIGGER message_appointment_update_for_backup_changes_trigger
-        AFTER UPDATE ON message_appointment
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'message_appointment')
-          AND
-          (table_row_id = NEW.message_row_id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('UPDATE', 'message_appointment', NEW.message_row_id)
-      ;
-        END;
-CREATE TRIGGER message_bd_for_message_acp2_setting_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_acp2_setting WHERE message_row_id=old._id; END;
-CREATE TRIGGER message_bd_for_message_appointment_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_appointment WHERE message_row_id=old._id; END;
-CREATE TRIGGER message_bd_for_newsletter_scheduled_message_trigger BEFORE DELETE ON message BEGIN DELETE FROM newsletter_scheduled_message WHERE message_row_id=old._id; END;
-CREATE INDEX message_appointment_appointment_id_index
-            ON message_appointment (appointment_id);
-CREATE INDEX newsletter_interaction_newsletter_timestamp_index
-            ON newsletter_interaction (newsletter_jid_row_id, timestamp_ms);
-CREATE INDEX newsletter_interaction_timestamp_ms_index
-            ON newsletter_interaction (timestamp_ms);
-CREATE UNIQUE INDEX newsletter_scheduled_message_index ON newsletter_scheduled_message (chat_row_id, scheduled_server_id);
