@@ -4133,4 +4133,3 @@ CREATE UNIQUE INDEX ai_scheduled_task_info_message_row_id_task_id_index
 CREATE INDEX ai_scheduled_task_info_task_id_timestamp_index
           ON ai_scheduled_task_info
           (task_id, message_timestamp, message_row_id);
-CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
