@@ -12,7 +12,7 @@ CREATE TABLE payment_background_order(background_id TEXT PRIMARY KEY,background_
 CREATE TABLE message_quoted_media(message_row_id INTEGER PRIMARY KEY,media_job_uuid TEXT,transferred INTEGER,file_path TEXT,file_size INTEGER,media_key BLOB,media_key_timestamp INTEGER,width INTEGER,height INTEGER,direct_path TEXT,message_url TEXT,mime_type TEXT,file_length INTEGER,media_name TEXT,file_hash TEXT,media_duration INTEGER,page_count INTEGER,enc_file_hash TEXT,thumbnail BLOB,media_caption TEXT, accessibility_label TEXT);
 CREATE TABLE primary_device_version(user_jid_row_id INTEGER PRIMARY KEY,version INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE message_ui_elements_reply(message_row_id INTEGER PRIMARY KEY,element_type INTEGER,reply_values TEXT,reply_description TEXT, flow_id TEXT);
-CREATE TABLE message_external_ad_content(message_row_id INTEGER PRIMARY KEY,title TEXT,body TEXT,media_type INTEGER,thumbnail_url TEXT,full_thumbnail BLOB,micro_thumbnail BLOB,media_url TEXT,source_type TEXT,source_id TEXT,source_url TEXT,render_larger_thumbnail BOOLEAN,show_ad_attribution BOOLEAN,has_icebreaker_auto_response BOOLEAN,has_click_to_call_auto_response BOOLEAN, ad_context_preview_dismissed INTEGER, source_app TEXT, automated_greeting_message_shown INTEGER, greeting_message_body TEXT, cta_payload TEXT, disable_nudge INTEGER, original_image_url TEXT, automated_greeting_message_cta_type TEXT, ctwa_clid TEXT, wtwa_ad_format BOOLEAN, ad_preview_url TEXT, wtwa_website_url TEXT, has_ctwa_flows_auto_response BOOLEAN, agm_thumbnail_strategy INTEGER, agm_title_strategy INTEGER, agm_subtitle_strategy INTEGER, agm_header_interaction_strategy INTEGER, has_ctwa_flows_auto_label BOOLEAN);
+CREATE TABLE message_external_ad_content(message_row_id INTEGER PRIMARY KEY,title TEXT,body TEXT,media_type INTEGER,thumbnail_url TEXT,full_thumbnail BLOB,micro_thumbnail BLOB,media_url TEXT,source_type TEXT,source_id TEXT,source_url TEXT,render_larger_thumbnail BOOLEAN,show_ad_attribution BOOLEAN,has_icebreaker_auto_response BOOLEAN,has_click_to_call_auto_response BOOLEAN, ad_context_preview_dismissed INTEGER, source_app TEXT, automated_greeting_message_shown INTEGER, greeting_message_body TEXT, cta_payload TEXT, disable_nudge INTEGER, original_image_url TEXT, automated_greeting_message_cta_type TEXT, ctwa_clid TEXT, wtwa_ad_format BOOLEAN, ad_preview_url TEXT, wtwa_website_url TEXT, has_ctwa_flows_auto_response BOOLEAN, agm_thumbnail_strategy INTEGER, agm_title_strategy INTEGER, agm_subtitle_strategy INTEGER, agm_header_interaction_strategy INTEGER, has_ctwa_flows_auto_label BOOLEAN, product_id TEXT);
 CREATE TABLE away_messages(_id INTEGER PRIMARY KEY AUTOINCREMENT,jid TEXT UNIQUE NOT NULL);
 CREATE TABLE jid_map(lid_row_id INTEGER PRIMARY KEY NOT NULL,jid_row_id INTEGER NOT NULL, sort_id INTEGER);
 CREATE TABLE message_quoted_mentions(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,jid_row_id INTEGER,display_name STRING, mention_type INTEGER);
@@ -3107,7 +3107,7 @@ CREATE UNIQUE INDEX feature_key_store_key_jid_type_index ON feature_key_store (
 CREATE TRIGGER chat_bd_for_integrity_analysis_result_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_analysis_result WHERE chat_row_id=old._id; END;
 CREATE TRIGGER chat_bd_for_integrity_input_feature_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_input_feature WHERE chat_row_id=old._id; END;
 CREATE INDEX message_conditional_reveal_chat_row_reveal_type_from_me_index ON message_conditional_reveal (chat_row_id, conditional_reveal_type, from_me);
-CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, end_time INTEGER, call_link TEXT, cover_image_width INTEGER, cover_image_height INTEGER);
+CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, end_time INTEGER, call_link TEXT, cover_image_width INTEGER, cover_image_height INTEGER, cover_image_handle TEXT, location_name TEXT, last_updated_ts_usec INTEGER, is_updated INTEGER);
 CREATE TRIGGER message_bd_for_message_event_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_event_invite WHERE message_row_id=old._id; END;
 CREATE INDEX message_event_invite_event_id_index
             ON message_event_invite (event_id);
@@ -3268,7 +3268,7 @@ CREATE UNIQUE INDEX message_add_on_receipt_coex_index
 CREATE INDEX message_split_payment_message_row_id_index ON message_split_payment (message_row_id);
 CREATE INDEX message_split_payment_participant_split_id_index ON message_split_payment_participant (split_id);
 CREATE TABLE message_payment_reminder(message_row_id INTEGER PRIMARY KEY NOT NULL,reminder_id TEXT NOT NULL,instance_id TEXT NOT NULL,description TEXT,frequency TEXT,status TEXT,payee_vpa TEXT,payee_jid_row_id INTEGER,payer_jid_row_id INTEGER,amount_value INTEGER,amount_offset INTEGER,amount_currency_code TEXT);
-CREATE TABLE message_quoted_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,end_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, call_link TEXT);
+CREATE TABLE message_quoted_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,end_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, call_link TEXT, cover_image_handle TEXT, location_name TEXT, last_updated_ts_usec INTEGER, is_updated INTEGER);
 CREATE TRIGGER message_bd_for_message_payment_reminder_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_payment_reminder WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_event_invite_delete_for_backup_changes_trigger
         AFTER DELETE ON message_event_invite
@@ -3714,6 +3714,7 @@ CREATE TRIGGER message_bd_for_newsletter_scheduled_message_trigger BEFORE DELETE
 CREATE INDEX message_appointment_appointment_id_index
             ON message_appointment (appointment_id);
 CREATE UNIQUE INDEX newsletter_scheduled_message_index ON newsletter_scheduled_message (chat_row_id, scheduled_server_id);
+CREATE TABLE ai_scheduled_task_info(_id INTEGER PRIMARY KEY,task_id TEXT NOT NULL,message_row_id INTEGER NOT NULL,message_timestamp INTEGER NOT NULL);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -4126,3 +4127,10 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,chat_props,jid_row_id,original_jid_row_id) */;
+CREATE TRIGGER message_bd_for_ai_scheduled_task_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM ai_scheduled_task_info WHERE message_row_id=old._id; END;
+CREATE UNIQUE INDEX ai_scheduled_task_info_message_row_id_task_id_index
+          ON ai_scheduled_task_info (message_row_id, task_id);
+CREATE INDEX ai_scheduled_task_info_task_id_timestamp_index
+          ON ai_scheduled_task_info
+          (task_id, message_timestamp, message_row_id);
+CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
