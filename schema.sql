@@ -59,7 +59,7 @@ CREATE TABLE message_system_with_group_nodes(message_row_id INTEGER NOT NULL,gro
 CREATE TABLE message_scheduled_call(message_row_id INTEGER PRIMARY KEY,scheduled_timestamp_ms INTEGER,call_type INTEGER,title TEXT);
 CREATE TABLE message_system_initial_privacy_provider(message_row_id INTEGER PRIMARY KEY,privacy_provider INTEGER NOT NULL DEFAULT 0,verified_biz_name TEXT,biz_state_id INTEGER, is_deprecated INTEGER);
 CREATE TABLE group_participant_device(_id INTEGER PRIMARY KEY AUTOINCREMENT,group_participant_row_id INTEGER NOT NULL,device_jid_row_id INTEGER NOT NULL,sent_sender_key INTEGER,sent_add_on_sender_key INTEGER, sent_sender_key_bucket TEXT);
-CREATE TABLE pay_transaction(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,remote_jid_row_id INTEGER,key_id TEXT,interop_id TEXT,id TEXT,timestamp INTEGER,status INTEGER,error_code TEXT,sender_jid_row_id INTEGER,receiver_jid_row_id INTEGER,type INTEGER,currency_code TEXT,amount_1000,credential_id TEXT,methods TEXT,bank_transaction_id TEXT,metadata TEXT,init_timestamp INTEGER,request_key_id TEXT,country TEXT,version INTEGER,future_data BLOB,service_id INTEGER,background_id TEXT,purchase_initiator INTEGER);
+CREATE TABLE pay_transaction(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,remote_jid_row_id INTEGER,key_id TEXT,interop_id TEXT,id TEXT,timestamp INTEGER,status INTEGER,error_code TEXT,sender_jid_row_id INTEGER,receiver_jid_row_id INTEGER,type INTEGER,currency_code TEXT,amount_1000,credential_id TEXT,methods TEXT,bank_transaction_id TEXT,metadata TEXT,init_timestamp INTEGER,request_key_id TEXT,country TEXT,version INTEGER,future_data BLOB,service_id INTEGER,background_id TEXT,purchase_initiator INTEGER, receiver_vpa TEXT);
 CREATE TABLE message_add_on_scheduled_call_edit(message_add_on_row_id INTEGER PRIMARY KEY,edit_type INTEGER NOT NULL DEFAULT 0,message_edit_version INTEGER);
 CREATE TABLE group_past_participant_user(_id INTEGER PRIMARY KEY AUTOINCREMENT,group_jid_row_id INTEGER NOT NULL,user_jid_row_id INTEGER NOT NULL,is_leave INTEGER NOT NULL,timestamp INTEGER);
 CREATE TABLE message_add_on_pin_in_chat(message_add_on_row_id INTEGER PRIMARY KEY,pin_in_chat_state INTEGER NOT NULL DEFAULT 0,sender_timestamp INTEGER);
@@ -121,7 +121,7 @@ CREATE TABLE suggest_as_you_type(message_row_id INTEGER PRIMARY KEY);
 CREATE TABLE lid_display_name(lid_row_id INTEGER PRIMARY KEY NOT NULL,display_name TEXT NOT NULL,username TEXT);
 CREATE TABLE message_system_chat_assignment(message_row_id INTEGER PRIMARY KEY,agent_name TEXT,is_unassigned_chat INTEGER);
 CREATE TABLE message_send_count(message_row_id INTEGER PRIMARY KEY,send_count INTEGER);
-CREATE TABLE message_orphaned_edit(_id INTEGER PRIMARY KEY,key_id TEXT NOT NULL,from_me INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,sender_jid_row_id INTEGER NOT NULL DEFAULT 0,timestamp INTEGER,message_type INTEGER NOT NULL,revoked_key_id TEXT,retry_count INTEGER,admin_jid_row_id INTEGER,orphan_message_data BLOB, reporting_token BLOB, reporting_tag BLOB, reporting_version INTEGER, biz_bot_thinking_state INTEGER);
+CREATE TABLE message_orphaned_edit(_id INTEGER PRIMARY KEY,key_id TEXT NOT NULL,from_me INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,sender_jid_row_id INTEGER NOT NULL DEFAULT 0,timestamp INTEGER,message_type INTEGER NOT NULL,revoked_key_id TEXT,retry_count INTEGER,admin_jid_row_id INTEGER,orphan_message_data BLOB, reporting_token BLOB, reporting_tag BLOB, reporting_version INTEGER, biz_bot_thinking_state INTEGER, poll_add_option_revoke INTEGER);
 CREATE TABLE lid_chat_state(jid_row_id INTEGER PRIMARY KEY NOT NULL,is_pn_shared INTEGER NOT NULL DEFAULT 0,pn_requested_ts INTEGER NOT NULL DEFAULT 0,pnh_duplicate_lid_thread INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE chat_ephemeral(chat_row_id INTEGER PRIMARY KEY,ephemeral_trigger INTEGER,ephemeral_initiated_by_me BOOLEAN, after_read_duration INTEGER);
 CREATE TABLE backup_changes(_id INTEGER PRIMARY KEY AUTOINCREMENT,operation TEXT NOT NULL,table_name TEXT NOT NULL,table_row_id INTEGER NOT NULL);
@@ -163,7 +163,7 @@ CREATE TABLE message_quote_invoice(message_row_id INTEGER PRIMARY KEY,amount TEX
 CREATE TABLE message_bcall_session(message_row_id INTEGER PRIMARY KEY,bcall_session_row_id INTEGER);
 CREATE TABLE agent_chat_assignment(jid_row_id INTEGER PRIMARY KEY,agent_id TEXT NOT NULL,is_opened BOOLEAN, account_jid_row_id INTEGER);
 CREATE TABLE message_fixed_content_placeholder(message_row_id INTEGER PRIMARY KEY,placeholder_type INTEGER NOT NULL);
-CREATE TABLE message_media(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER,autotransfer_retry_enabled INTEGER,multicast_id TEXT,media_job_uuid TEXT,transferred INTEGER,transcoded INTEGER,file_path TEXT,file_size INTEGER,suspicious_content INTEGER,trim_from INTEGER,trim_to INTEGER,face_x INTEGER,face_y INTEGER,media_key BLOB,media_key_timestamp INTEGER,width INTEGER,height INTEGER,has_streaming_sidecar INTEGER,gif_attribution INTEGER,thumbnail_height_width_ratio REAL,direct_path TEXT,first_scan_sidecar BLOB,first_scan_length INTEGER,message_url TEXT,mime_type TEXT,file_length INTEGER,media_name TEXT,file_hash TEXT,media_duration INTEGER,page_count INTEGER,enc_file_hash TEXT,partial_media_hash TEXT,partial_media_enc_hash TEXT,is_animated_sticker INTEGER,original_file_hash TEXT,mute_video INTEGER DEFAULT 0,media_caption TEXT,media_upload_handle TEXT,sticker_flags INTEGER, raw_transcription_text TEXT, first_viewed_timestamp INTEGER, doodle_id TEXT, media_source_type INTEGER, accessibility_label TEXT, media_transcode_quality INTEGER DEFAULT 0, metadata_url TEXT, motion_photo_presentation_offset_ms INTEGER, qr_url TEXT, media_key_domain INTEGER, e2ee_media_key BLOB, premium_message INTEGER, emoji_tags TEXT, is_offloaded INTEGER);
+CREATE TABLE message_media(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER,autotransfer_retry_enabled INTEGER,multicast_id TEXT,media_job_uuid TEXT,transferred INTEGER,transcoded INTEGER,file_path TEXT,file_size INTEGER,suspicious_content INTEGER,trim_from INTEGER,trim_to INTEGER,face_x INTEGER,face_y INTEGER,media_key BLOB,media_key_timestamp INTEGER,width INTEGER,height INTEGER,has_streaming_sidecar INTEGER,gif_attribution INTEGER,thumbnail_height_width_ratio REAL,direct_path TEXT,first_scan_sidecar BLOB,first_scan_length INTEGER,message_url TEXT,mime_type TEXT,file_length INTEGER,media_name TEXT,file_hash TEXT,media_duration INTEGER,page_count INTEGER,enc_file_hash TEXT,partial_media_hash TEXT,partial_media_enc_hash TEXT,is_animated_sticker INTEGER,original_file_hash TEXT,mute_video INTEGER DEFAULT 0,media_caption TEXT,media_upload_handle TEXT,sticker_flags INTEGER, raw_transcription_text TEXT, first_viewed_timestamp INTEGER, doodle_id TEXT, media_source_type INTEGER, accessibility_label TEXT, media_transcode_quality INTEGER DEFAULT 0, metadata_url TEXT, motion_photo_presentation_offset_ms INTEGER, qr_url TEXT, media_key_domain INTEGER, e2ee_media_key BLOB, premium_message INTEGER, emoji_tags TEXT, is_offloaded INTEGER, dash_manifest_url TEXT);
 CREATE TABLE user_device(_id INTEGER PRIMARY KEY AUTOINCREMENT,user_jid_row_id INTEGER,device_jid_row_id INTEGER,key_index INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE message_system_group_auto_restrict(message_row_id INTEGER PRIMARY KEY,threshold INTEGER);
 CREATE TABLE message_orphan(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER,from_me INTEGER,key_id TEXT NOT NULL,sender_jid_row_id INTEGER,parent_chat_row_id INTEGER,parent_from_me INTEGER,parent_key_id TEXT,parent_sender_jid_row_id INTEGER,timestamp INTEGER,orphan_message_data BLOB,orphan_message_type INTEGER,orphan_message_stanza_data BLOB, orphan_message_reason INTEGER);
@@ -193,7 +193,7 @@ CREATE TABLE message_sticker_pack_stickers(_id INTEGER PRIMARY KEY AUTOINCREMENT
 CREATE TABLE composition(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,quoted_message_row_id INTEGER,timestamp INTEGER NOT NULL,message_type INTEGER NOT NULL,composition_type INTEGER NOT NULL,text TEXT,lookup_tables INTEGER NOT NULL DEFAULT 0, last_seen_timestamp INTEGER);
 CREATE TABLE composition_media(composition_row_id INTEGER PRIMARY KEY NOT NULL,media_uri TEXT,media_duration_in_seconds INTEGER, media_name TEXT, file_length INTEGER);
 CREATE TABLE composition_mention(_id INTEGER PRIMARY KEY AUTOINCREMENT,composition_row_id INTEGER NOT NULL,jid_row_id INTEGER NOT NULL, mention_type INTEGER);
-CREATE TABLE labels(_id INTEGER PRIMARY KEY AUTOINCREMENT,label_name TEXT,predefined_id INTEGER,color_id INTEGER,sort_id INTEGER NOT NULL DEFAULT 0, type INTEGER NOT NULL DEFAULT 0, hidden INTEGER, mute_end_time INTEGER, mute_schedule_enabled_days INTEGER, mute_schedule_time_from INTEGER, mute_schedule_time_to INTEGER, is_immutable INTEGER, is_aura_benefit_enabled INTEGER, notification_schedule_enabled INTEGER, schedule_mute_outside_enabled INTEGER, schedule_hide_outside_enabled INTEGER);
+CREATE TABLE labels(_id INTEGER PRIMARY KEY AUTOINCREMENT,label_name TEXT,predefined_id INTEGER,color_id INTEGER,sort_id INTEGER NOT NULL DEFAULT 0, type INTEGER NOT NULL DEFAULT 0, hidden INTEGER, mute_end_time INTEGER, mute_schedule_enabled_days INTEGER, mute_schedule_time_from INTEGER, mute_schedule_time_to INTEGER, is_immutable INTEGER, is_aura_benefit_enabled INTEGER, notification_schedule_enabled INTEGER, schedule_mute_outside_enabled INTEGER, schedule_hide_outside_enabled INTEGER, schedule_unmuted_until INTEGER);
 CREATE TABLE labeled_jid(_id INTEGER PRIMARY KEY AUTOINCREMENT,label_id INTEGER NOT NULL,jid_row_id INTEGER NOT NULL);
 CREATE TABLE message_media_interactive_annotation_embedded_music(message_media_interactive_annotation_row_id INTEGER PRIMARY KEY,music_content_media_id TEXT,song_id TEXT,author TEXT,title TEXT,artwork_direct_path TEXT,artwork_sha256 BLOB,artwork_enc_sha256 BLOB,artist_attribution TEXT,country_blocklist BLOB, artwork_media_key BLOB, is_explicit INTEGER, pending_embedded_music_type INTEGER, start_time_ms INTEGER, derived_content_start_time_ms INTEGER, overlap_duration_ms INTEGER, audio_library_product TEXT);
 CREATE TABLE message_span_indices(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,start_index INTEGER,end_index INTEGER,span_type INTEGER);
@@ -3073,7 +3073,7 @@ CREATE INDEX message_external_ad_content_source_id_index
             ON message_external_ad_content (source_id);
 CREATE UNIQUE INDEX status_privacy_custom_list_list_id_index
       ON status_privacy_custom_list(list_id);
-CREATE TABLE group_history_share_reporting_info(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,stanza_id TEXT NOT NULL,reporting_token BLOB,reporting_token_version INTEGER,added_timestamp DATETIME NOT NULL,send_timestamp DATETIME,reporting_tag BLOB,is_send INTEGER);
+CREATE TABLE group_history_share_reporting_info(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,stanza_id TEXT NOT NULL,reporting_token BLOB,reporting_token_version INTEGER,added_timestamp DATETIME NOT NULL,send_timestamp DATETIME,reporting_tag BLOB,is_send INTEGER, validation_policy TEXT);
 CREATE TRIGGER message_bd_for_group_history_share_reporting_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_share_reporting_info WHERE message_row_id=old._id; END;
 CREATE INDEX ghs_reporting_info_added_timestamp_index 
           ON group_history_share_reporting_info (added_timestamp);
@@ -3107,7 +3107,7 @@ CREATE UNIQUE INDEX feature_key_store_key_jid_type_index ON feature_key_store (
 CREATE TRIGGER chat_bd_for_integrity_analysis_result_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_analysis_result WHERE chat_row_id=old._id; END;
 CREATE TRIGGER chat_bd_for_integrity_input_feature_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_input_feature WHERE chat_row_id=old._id; END;
 CREATE INDEX message_conditional_reveal_chat_row_reveal_type_from_me_index ON message_conditional_reveal (chat_row_id, conditional_reveal_type, from_me);
-CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, end_time INTEGER, call_link TEXT, cover_image_width INTEGER, cover_image_height INTEGER, cover_image_handle TEXT, location_name TEXT, last_updated_ts_usec INTEGER, is_updated INTEGER);
+CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, end_time INTEGER, call_link TEXT, cover_image_width INTEGER, cover_image_height INTEGER, cover_image_handle TEXT, location_name TEXT, last_updated_ts_usec INTEGER, is_updated INTEGER, status INTEGER);
 CREATE TRIGGER message_bd_for_message_event_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_event_invite WHERE message_row_id=old._id; END;
 CREATE INDEX message_event_invite_event_id_index
             ON message_event_invite (event_id);
@@ -3268,7 +3268,7 @@ CREATE UNIQUE INDEX message_add_on_receipt_coex_index
 CREATE INDEX message_split_payment_message_row_id_index ON message_split_payment (message_row_id);
 CREATE INDEX message_split_payment_participant_split_id_index ON message_split_payment_participant (split_id);
 CREATE TABLE message_payment_reminder(message_row_id INTEGER PRIMARY KEY NOT NULL,reminder_id TEXT NOT NULL,instance_id TEXT NOT NULL,description TEXT,frequency TEXT,status TEXT,payee_vpa TEXT,payee_jid_row_id INTEGER,payer_jid_row_id INTEGER,amount_value INTEGER,amount_offset INTEGER,amount_currency_code TEXT);
-CREATE TABLE message_quoted_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,end_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, call_link TEXT, cover_image_handle TEXT, location_name TEXT, last_updated_ts_usec INTEGER, is_updated INTEGER);
+CREATE TABLE message_quoted_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TEXT NOT NULL,event_title TEXT NOT NULL,start_time INTEGER,end_time INTEGER,is_canceled INTEGER DEFAULT 0,caption TEXT, call_link TEXT, cover_image_handle TEXT, location_name TEXT, last_updated_ts_usec INTEGER, is_updated INTEGER, status INTEGER);
 CREATE TRIGGER message_bd_for_message_payment_reminder_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_payment_reminder WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_event_invite_delete_for_backup_changes_trigger
         AFTER DELETE ON message_event_invite
@@ -3734,6 +3734,7 @@ CREATE INDEX mentions_jid_row_id_index
             ON message_mentions (jid_row_id);
 CREATE INDEX quoted_from_me_index
             ON message_quoted (from_me);
+CREATE TABLE poll_original_option(_id INTEGER PRIMARY KEY AUTOINCREMENT,poll_message_row_id INTEGER NOT NULL,option_index INTEGER NOT NULL,option_name TEXT NOT NULL,option_hash TEXT);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -4146,3 +4147,77 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,chat_props,jid_row_id,original_jid_row_id) */;
+CREATE TRIGGER message_bd_for_poll_original_option_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_original_option WHERE poll_message_row_id=old._id; END;
+CREATE TRIGGER poll_original_option_delete_for_backup_changes_trigger
+      AFTER DELETE ON poll_original_option
+      BEGIN
+        
+          DELETE FROM
+            backup_changes
+          WHERE
+            (table_name = 'message')
+            AND
+            (table_row_id = OLD.poll_message_row_id)
+            AND
+            (
+              (operation = 'INSERT')
+              OR
+              (operation = 'UPDATE')
+            )
+          ;
+        
+        INSERT INTO
+          backup_changes (operation, table_name, table_row_id)
+        VALUES ('UPDATE', 'message', OLD.poll_message_row_id)
+      ;
+      END;
+CREATE TRIGGER poll_original_option_insert_for_backup_changes_trigger
+      AFTER INSERT ON poll_original_option
+      BEGIN
+        
+          DELETE FROM
+            backup_changes
+          WHERE
+            (table_name = 'message')
+            AND
+            (table_row_id = NEW.poll_message_row_id)
+            AND
+            (
+              (operation = 'INSERT')
+              OR
+              (operation = 'UPDATE')
+            )
+          ;
+        
+        INSERT INTO
+          backup_changes (operation, table_name, table_row_id)
+        VALUES ('UPDATE', 'message', NEW.poll_message_row_id)
+      ;
+      END;
+CREATE TRIGGER poll_original_option_update_for_backup_changes_trigger
+      AFTER UPDATE ON poll_original_option
+      BEGIN
+        
+          DELETE FROM
+            backup_changes
+          WHERE
+            (table_name = 'message')
+            AND
+            (table_row_id = NEW.poll_message_row_id)
+            AND
+            (
+              (operation = 'INSERT')
+              OR
+              (operation = 'UPDATE')
+            )
+          ;
+        
+        INSERT INTO
+          backup_changes (operation, table_name, table_row_id)
+        VALUES ('UPDATE', 'message', NEW.poll_message_row_id)
+      ;
+      END;
+CREATE UNIQUE INDEX poll_original_option_lookup_idx
+            ON poll_original_option (poll_message_row_id, option_index);
+CREATE INDEX sticker_audio_media_file_path_index
+          ON sticker_audio_media (file_path);
