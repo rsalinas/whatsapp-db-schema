@@ -2733,7 +2733,7 @@ CREATE INDEX extended_media_data_file_hash_index
 CREATE INDEX message_media_map_message_row_id_index ON message_media_map (message_row_id);
 CREATE INDEX message_media_map_chat_row_id_index ON message_media_map (chat_row_id);
 CREATE INDEX message_media_map_media_row_id_index ON message_media_map (media_row_id);
-CREATE TABLE group_history_metadata(message_row_id INTEGER PRIMARY KEY NOT NULL,history_receivers TEXT NOT NULL,first_message_timestamp_seconds INTEGER NOT NULL,message_count INTEGER NOT NULL, non_history_receivers TEXT, oldest_message_timestamp_in_bundle_seconds INTEGER);
+CREATE TABLE group_history_metadata(message_row_id INTEGER PRIMARY KEY NOT NULL,history_receivers TEXT NOT NULL,first_message_timestamp_seconds INTEGER NOT NULL,message_count INTEGER NOT NULL, non_history_receivers TEXT, oldest_message_timestamp_in_bundle_seconds INTEGER, includes_chat_theme INTEGER);
 CREATE TABLE group_history_bundle(message_row_id INTEGER PRIMARY KEY NOT NULL,process_state INTEGER NOT NULL DEFAULT 0, send_state INTEGER NOT NULL DEFAULT 0);
 CREATE TRIGGER message_bd_for_group_history_bundle_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_bundle WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_group_history_metadata_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_metadata WHERE message_row_id=old._id; END;
@@ -3109,7 +3109,7 @@ CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TE
 CREATE TRIGGER message_bd_for_message_event_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_event_invite WHERE message_row_id=old._id; END;
 CREATE INDEX message_event_invite_event_id_index
             ON message_event_invite (event_id);
-CREATE TABLE poll_edit_snapshot(_id INTEGER PRIMARY KEY AUTOINCREMENT,parent_message_row_id INTEGER,previous_poll_name TEXT);
+CREATE TABLE poll_edit_snapshot(_id INTEGER PRIMARY KEY AUTOINCREMENT,parent_message_row_id INTEGER,previous_poll_name TEXT, acked_original_option_count INTEGER);
 CREATE TRIGGER message_bd_for_poll_edit_snapshot_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_edit_snapshot WHERE parent_message_row_id=old._id; END;
 CREATE INDEX poll_edit_snapshot_parent_idx
             ON poll_edit_snapshot (parent_message_row_id);
@@ -3813,6 +3813,25 @@ CREATE TABLE message_chat_theme_setting(message_row_id INTEGER PRIMARY KEY NOT N
 CREATE TABLE private_ai_message_epoch(message_row_id INTEGER PRIMARY KEY,epoch_anon_id INTEGER NOT NULL);
 CREATE TABLE private_ai_sync_mutation_table(_id INTEGER PRIMARY KEY AUTOINCREMENT,scope_id INTEGER NOT NULL,message_row_id INTEGER NOT NULL,operation INTEGER NOT NULL,retry_count INTEGER NOT NULL DEFAULT 0,key_remote_jid_row_id INTEGER,key_id TEXT,key_from_me INTEGER,key_sender_jid_row_id INTEGER,thread_key TEXT);
 CREATE TABLE private_ai_sync_scope_table(_id INTEGER PRIMARY KEY AUTOINCREMENT,chat_row_id INTEGER NOT NULL,thread_id INTEGER NOT NULL DEFAULT 0,enable_boundary_message_row_id INTEGER NOT NULL,retroactive_floor_message_row_id INTEGER NOT NULL,retroactive_cursor_message_row_id INTEGER NOT NULL,realtime_cursor_message_row_id INTEGER NOT NULL,retroactive_complete INTEGER NOT NULL DEFAULT 0);
+CREATE TRIGGER message_bd_for_message_chat_theme_setting_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_chat_theme_setting WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_private_ai_message_epoch_trigger BEFORE DELETE ON message BEGIN DELETE FROM private_ai_message_epoch WHERE message_row_id=old._id; END;
+CREATE TRIGGER private_ai_sync_scope_table_bd_for_private_ai_sync_mutation_table_trigger BEFORE DELETE ON private_ai_sync_scope_table BEGIN DELETE FROM private_ai_sync_mutation_table WHERE scope_id=old._id; END;
+CREATE INDEX private_ai_sync_mutation_scope_message_index
+          ON private_ai_sync_mutation_table (
+            scope_id,
+            message_row_id,
+            operation
+          );
+CREATE UNIQUE INDEX private_ai_sync_scope_chat_thread_index
+          ON private_ai_sync_scope_table (
+            chat_row_id,
+            thread_id
+          );
+CREATE INDEX private_ai_sync_scope_retroactive_work_index
+          ON private_ai_sync_scope_table (
+            retroactive_complete,
+            retroactive_cursor_message_row_id
+          );
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -4225,22 +4244,7 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,chat_props,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER message_bd_for_message_chat_theme_setting_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_chat_theme_setting WHERE message_row_id=old._id; END;
-CREATE TRIGGER message_bd_for_private_ai_message_epoch_trigger BEFORE DELETE ON message BEGIN DELETE FROM private_ai_message_epoch WHERE message_row_id=old._id; END;
-CREATE TRIGGER private_ai_sync_scope_table_bd_for_private_ai_sync_mutation_table_trigger BEFORE DELETE ON private_ai_sync_scope_table BEGIN DELETE FROM private_ai_sync_mutation_table WHERE scope_id=old._id; END;
-CREATE INDEX private_ai_sync_mutation_scope_message_index
-          ON private_ai_sync_mutation_table (
-            scope_id,
-            message_row_id,
-            operation
-          );
-CREATE UNIQUE INDEX private_ai_sync_scope_chat_thread_index
-          ON private_ai_sync_scope_table (
-            chat_row_id,
-            thread_id
-          );
-CREATE INDEX private_ai_sync_scope_retroactive_work_index
-          ON private_ai_sync_scope_table (
-            retroactive_complete,
-            retroactive_cursor_message_row_id
-          );
+CREATE INDEX labels_names_index
+            ON labels (
+              label_name
+            );
