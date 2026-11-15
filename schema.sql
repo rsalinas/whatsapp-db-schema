@@ -46,7 +46,7 @@ CREATE TABLE message_quoted_product(message_row_id INTEGER PRIMARY KEY,business_
 CREATE TABLE messages_hydrated_four_row_template(message_row_id INTEGER PRIMARY KEY,message_template_id TEXT);
 CREATE TABLE message_text(message_row_id INTEGER PRIMARY KEY,description TEXT,page_title TEXT,url TEXT,font_style INTEGER,text_color INTEGER,background_color INTEGER,preview_type INTEGER,invite_link_group_type INTEGER NOT NULL DEFAULT 0,counter_abuse_token TEXT, fb_experiment_id INTEGER, social_media_post_type INTEGER, link_media_duration_seconds INTEGER, link_end_index INTEGER);
 CREATE TABLE priority_inbox(_id INTEGER PRIMARY KEY AUTOINCREMENT,priority_score DOUBLE NOT NULL,version INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,is_priority BOOLEAN,label_removed BOOLEAN,time_created INTEGER,deep_conversion_rate BOOLEAN);
-CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT, metrics_metadata_json TEXT, bot_deep_link_token TEXT, ai_media_collection_metadata_json TEXT, signature_validation_status INTEGER, tool_calls_blob BLOB, bot_history_share_json TEXT, bot_client_public_key TEXT, message_origin_json TEXT, hatch_metadata BLOB, quoted_title_override TEXT, quoted_body_override TEXT);
+CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT, metrics_metadata_json TEXT, bot_deep_link_token TEXT, ai_media_collection_metadata_json TEXT, signature_validation_status INTEGER, tool_calls_blob BLOB, bot_history_share_json TEXT, bot_client_public_key TEXT, message_origin_json TEXT, hatch_metadata BLOB, quoted_title_override TEXT, quoted_body_override TEXT, interjection_target_prompt_id TEXT);
 CREATE TABLE quick_reply_attachments(_id INTEGER PRIMARY KEY AUTOINCREMENT,quick_reply_id TEXT NOT NULL,uri TEXT NOT NULL,caption TEXT,media_type INTEGER);
 CREATE TABLE message_details(message_row_id INTEGER PRIMARY KEY,author_device_jid INTEGER);
 CREATE TABLE message_quoted_payment_invite(message_row_id INTEGER PRIMARY KEY,service INTEGER,expiration_timestamp INTEGER, incentive_eligible INTEGER, referral_id TEXT, invite_type INTEGER);
@@ -131,7 +131,7 @@ CREATE TABLE message_payment(message_row_id INTEGER PRIMARY KEY,sender_jid_row_i
 CREATE TABLE message_event(message_row_id INTEGER PRIMARY KEY,is_canceled INTEGER DEFAULT 0,name TEXT NOT NULL,description TEXT,location_latitude REAL,location_longitude REAL,location_name TEXT,location_address TEXT,join_link TEXT,start_time DATETIME NOT NULL,chat_row_id INTEGER,event_state INTEGER NOT NULL DEFAULT 0, end_time DATETIME, allow_extra_guests INTEGER, is_schedule_call INTEGER, has_reminder INTEGER, reminder_offset_sec INTEGER, show_upcoming_banner INTEGER);
 CREATE TABLE message_add_on_poll_vote_selected_option(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_add_on_row_id INTEGER,message_poll_option_id INTEGER);
 CREATE TABLE message_ephemeral_setting(message_row_id INTEGER PRIMARY KEY,setting_duration INTEGER,setting_reason INTEGER,user_jid_row_id_csv TEXT,ephemeral_trigger INTEGER,ephemeral_initiated_by_me INTEGER, pre_setting_duration INTEGER, after_read_duration INTEGER);
-CREATE TABLE message_system_group(message_row_id INTEGER PRIMARY KEY,is_me_joined INTEGER);
+CREATE TABLE message_system_group(message_row_id INTEGER PRIMARY KEY,is_me_joined INTEGER, group_history_last_counted_message_timestamp_ms INTEGER);
 CREATE TABLE message_quoted_ui_elements_reply(message_row_id INTEGER PRIMARY KEY,element_type INTEGER,reply_values TEXT,reply_description TEXT);
 CREATE TABLE premium_message_info(message_row_id INTEGER PRIMARY KEY,campaign_id STRING NOT NULL, chat_row_id INTEGER, account_jid_row_id INTEGER);
 CREATE TABLE message_template_button(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,text_data TEXT NOT NULL,extra_data TEXT,button_type INTEGER,used INTEGER,selected_index INTEGER,selected_carousel_card_index INTEGER,otp_button_type INTEGER,extra_consent_data TEXT,otp_matched_package_name TEXT,webview_presentation INTEGER, webview_interaction INTEGER);
@@ -145,7 +145,7 @@ CREATE TABLE template_messages_metadata(message_row_id INTEGER PRIMARY KEY,messa
 CREATE TABLE community_chat(chat_row_id INTEGER PRIMARY KEY,last_activity_ts INTEGER,last_activity_seen_ts INTEGER,join_ts INTEGER,closed INTEGER NOT NULL DEFAULT 0, nesting_state INTEGER);
 CREATE TABLE missed_call_log_participant(_id INTEGER PRIMARY KEY AUTOINCREMENT,call_logs_row_id INTEGER,jid TEXT,call_result INTEGER);
 CREATE TABLE message_media_vcard_count(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,count INTEGER);
-CREATE TABLE agent_devices(agent_id TEXT PRIMARY KEY NOT NULL,agent_name TEXT UNIQUE NOT NULL,device INTEGER,last_modified_time INTEGER,is_deleted BOOLEAN);
+CREATE TABLE agent_devices(agent_id TEXT PRIMARY KEY NOT NULL,agent_name TEXT UNIQUE NOT NULL,device INTEGER,last_modified_time INTEGER,is_deleted BOOLEAN, agent_alias TEXT);
 CREATE TABLE quick_reply_usage(_id INTEGER PRIMARY KEY AUTOINCREMENT,quick_reply_id TEXT NOT NULL,usage_date DATE,usage_count INTEGER);
 CREATE TABLE message_comment(_id INTEGER PRIMARY KEY AUTOINCREMENT,parent_message_row_id INTEGER,message_row_id INTEGER);
 CREATE TABLE message_quoted_vcard(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER,vcard TEXT);
@@ -157,7 +157,7 @@ CREATE TABLE message_quoted_call_log(message_row_id INTEGER PRIMARY KEY,video_ca
 CREATE TABLE message_payment_transaction_reminder(message_row_id INTEGER PRIMARY KEY,web_stub TEXT,amount TEXT,transfer_date TEXT,payment_sender_name TEXT,expiration INTEGER,remote_message_key TEXT);
 CREATE TABLE newsletter_message(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER NOT NULL,server_message_id INTEGER NOT NULL,comments_count INTEGER NOT NULL DEFAULT 0,reaction_from_me TEXT,extra_newsletter_tables INTEGER NOT NULL DEFAULT 0,extra_table_last_update_ts INTEGER,reactions_from_me_ts INTEGER,view_count INTEGER, is_autodelete_eligible INTEGER, is_wamo_sub INTEGER, forwards_count INTEGER, admin_profile_id INTEGER, admin_profile_name TEXT, admin_profile_picture_id INTEGER, admin_profile_picture_url TEXT, is_paid_partnership INTEGER);
 CREATE TABLE invoice_transactions(message_row_id INTEGER PRIMARY KEY,pay_transaction_id INTEGER);
-CREATE TABLE message_edit_info(message_row_id INTEGER PRIMARY KEY,original_key_id TEXT NOT NULL,edited_timestamp INTEGER NOT NULL,sender_timestamp INTEGER NOT NULL);
+CREATE TABLE message_edit_info(message_row_id INTEGER PRIMARY KEY,original_key_id TEXT NOT NULL,edited_timestamp INTEGER NOT NULL,sender_timestamp INTEGER NOT NULL, display_type INTEGER);
 CREATE TABLE status_message_info(message_row_id INTEGER PRIMARY KEY,status_distribution_mode INTEGER NOT NULL, is_mentioned INTEGER, status_mentions TEXT, cannot_receive_reactions INTEGER, cannot_be_ranked INTEGER, has_embedded_music INTEGER, status_mention_source TEXT, status_attribution_type INTEGER, is_group_status INTEGER, can_be_reshared INTEGER, ranking_version INTEGER, external_media_duration_seconds INTEGER, original_status_message_row_id INTEGER, original_poster_notification_type INTEGER, status_source_type INTEGER, selected_audience_list TEXT, override_notification_recipient_jid TEXT, can_receive_multi_reactions INTEGER, audience_type INTEGER, status_poster_contact_type INTEGER, status_audience_custom_list_name TEXT, status_audience_custom_list_emoji TEXT, poster_status_id TEXT);
 CREATE TABLE message_quote_invoice(message_row_id INTEGER PRIMARY KEY,amount TEXT NOT NULL,note TEXT NOT NULL,status INTEGER,attachment_jpeg_thumbnail BLOB);
 CREATE TABLE message_bcall_session(message_row_id INTEGER PRIMARY KEY,bcall_session_row_id INTEGER);
@@ -1544,7 +1544,6 @@ CREATE TRIGGER message_bd_for_message_event_trigger BEFORE DELETE ON message BEG
 CREATE TRIGGER message_bd_for_message_external_ad_content_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_external_ad_content WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_message_fixed_content_placeholder_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_fixed_content_placeholder WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_message_forwarded_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_forwarded WHERE message_row_id=old._id; END;
-CREATE TRIGGER message_bd_for_message_ftsv2_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_ftsv2 WHERE docid=old._id; END;
 CREATE TRIGGER message_bd_for_message_future_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_future WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_message_group_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_group_invite WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_message_link_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_link WHERE message_row_id=old._id; END;
@@ -3109,7 +3108,7 @@ CREATE TABLE message_event_invite(message_row_id INTEGER PRIMARY KEY,event_id TE
 CREATE TRIGGER message_bd_for_message_event_invite_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_event_invite WHERE message_row_id=old._id; END;
 CREATE INDEX message_event_invite_event_id_index
             ON message_event_invite (event_id);
-CREATE TABLE poll_edit_snapshot(_id INTEGER PRIMARY KEY AUTOINCREMENT,parent_message_row_id INTEGER,previous_poll_name TEXT, acked_original_option_count INTEGER);
+CREATE TABLE poll_edit_snapshot(_id INTEGER PRIMARY KEY AUTOINCREMENT,parent_message_row_id INTEGER,previous_poll_name TEXT, acked_original_option_count INTEGER, saved_timestamp_ms INTEGER);
 CREATE TRIGGER message_bd_for_poll_edit_snapshot_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_edit_snapshot WHERE parent_message_row_id=old._id; END;
 CREATE INDEX poll_edit_snapshot_parent_idx
             ON poll_edit_snapshot (parent_message_row_id);
@@ -3732,7 +3731,7 @@ CREATE INDEX mentions_jid_row_id_index
             ON message_mentions (jid_row_id);
 CREATE INDEX quoted_from_me_index
             ON message_quoted (from_me);
-CREATE TABLE poll_original_option(_id INTEGER PRIMARY KEY AUTOINCREMENT,poll_message_row_id INTEGER NOT NULL,option_index INTEGER NOT NULL,option_name TEXT NOT NULL,option_hash TEXT);
+CREATE TABLE poll_original_option(_id INTEGER PRIMARY KEY AUTOINCREMENT,poll_message_row_id INTEGER NOT NULL,option_index INTEGER NOT NULL,option_name TEXT NOT NULL,option_hash TEXT, removed_option_row_id INTEGER);
 CREATE TRIGGER message_bd_for_poll_original_option_trigger BEFORE DELETE ON message BEGIN DELETE FROM poll_original_option WHERE poll_message_row_id=old._id; END;
 CREATE TRIGGER poll_original_option_delete_for_backup_changes_trigger
       AFTER DELETE ON poll_original_option
@@ -3836,6 +3835,93 @@ CREATE INDEX labels_names_index
             ON labels (
               label_name
             );
+CREATE TRIGGER chat_encryption_classification_delete_for_backup_changes_trigger
+        AFTER DELETE ON chat_encryption_classification
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'chat_encryption_classification')
+          AND
+          (table_row_id = OLD._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'chat_encryption_classification', OLD._id)
+      ;
+        END;
+CREATE TRIGGER chat_encryption_classification_insert_for_backup_changes_trigger
+        AFTER INSERT ON chat_encryption_classification
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'chat_encryption_classification')
+          AND
+          (table_row_id = NEW._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'chat_encryption_classification', NEW._id)
+      ;
+        END;
+CREATE TRIGGER chat_encryption_classification_update_for_backup_changes_trigger
+        AFTER UPDATE ON chat_encryption_classification
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'chat_encryption_classification')
+          AND
+          (table_row_id = NEW._id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'chat_encryption_classification', NEW._id)
+      ;
+        END;
+CREATE TRIGGER private_ai_sync_scope_table_bd_for_private_ai_message_epoch_trigger BEFORE DELETE ON private_ai_sync_scope_table BEGIN DELETE FROM private_ai_message_epoch WHERE scope_id=old._id; END;
+CREATE INDEX private_ai_message_epoch_scope_index
+          ON private_ai_message_epoch (scope_id)
+          WHERE scope_id IS NOT NULL;
+CREATE INDEX private_ai_sync_mutation_thread_delete_index
+          ON private_ai_sync_mutation_table (_id)
+          WHERE operation = 2;
+CREATE INDEX private_ai_sync_scope_group_index
+          ON private_ai_sync_scope_table (group_chat_row_id);
+CREATE TRIGGER message_bd_for_message_ftsv2_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_ftsv2 WHERE docid=old._id; DELETE FROM message_ftsv2 WHERE 
+          old.sort_id != old._id
+          AND docid = old.sort_id
+          AND NOT EXISTS (
+            SELECT 1 FROM message AS other
+            WHERE other.sort_id = old.sort_id
+              AND other._id != old._id
+              AND NOT EXISTS (
+                SELECT 1 FROM newsletter_message
+                WHERE message_row_id = other._id
+              )
+          )
+        ; END;
+CREATE INDEX labeled_jid_jid_row_id_index
+          ON labeled_jid (jid_row_id);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -4249,75 +4335,3 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,chat_props,last_sticker_annotation_sort_id,jid_row_id,original_jid_row_id) */;
-CREATE TRIGGER chat_encryption_classification_delete_for_backup_changes_trigger
-        AFTER DELETE ON chat_encryption_classification
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'chat_encryption_classification')
-          AND
-          (table_row_id = OLD._id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('DELETE', 'chat_encryption_classification', OLD._id)
-      ;
-        END;
-CREATE TRIGGER chat_encryption_classification_insert_for_backup_changes_trigger
-        AFTER INSERT ON chat_encryption_classification
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'chat_encryption_classification')
-          AND
-          (table_row_id = NEW._id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('INSERT', 'chat_encryption_classification', NEW._id)
-      ;
-        END;
-CREATE TRIGGER chat_encryption_classification_update_for_backup_changes_trigger
-        AFTER UPDATE ON chat_encryption_classification
-        BEGIN
-          
-        DELETE FROM backup_changes
-        WHERE
-          (table_name = 'chat_encryption_classification')
-          AND
-          (table_row_id = NEW._id)
-          AND
-          (
-            (operation = 'INSERT')
-            OR
-            (operation = 'UPDATE')
-          )
-      ;
-          
-        INSERT INTO backup_changes (operation, table_name, table_row_id)
-        VALUES('UPDATE', 'chat_encryption_classification', NEW._id)
-      ;
-        END;
-CREATE TRIGGER private_ai_sync_scope_table_bd_for_private_ai_message_epoch_trigger BEFORE DELETE ON private_ai_sync_scope_table BEGIN DELETE FROM private_ai_message_epoch WHERE scope_id=old._id; END;
-CREATE INDEX private_ai_message_epoch_scope_index
-          ON private_ai_message_epoch (scope_id)
-          WHERE scope_id IS NOT NULL;
-CREATE INDEX private_ai_sync_mutation_thread_delete_index
-          ON private_ai_sync_mutation_table (_id)
-          WHERE operation = 2;
-CREATE INDEX private_ai_sync_scope_group_index
-          ON private_ai_sync_scope_table (group_chat_row_id);
