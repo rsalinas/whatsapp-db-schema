@@ -46,7 +46,7 @@ CREATE TABLE message_quoted_product(message_row_id INTEGER PRIMARY KEY,business_
 CREATE TABLE messages_hydrated_four_row_template(message_row_id INTEGER PRIMARY KEY,message_template_id TEXT);
 CREATE TABLE message_text(message_row_id INTEGER PRIMARY KEY,description TEXT,page_title TEXT,url TEXT,font_style INTEGER,text_color INTEGER,background_color INTEGER,preview_type INTEGER,invite_link_group_type INTEGER NOT NULL DEFAULT 0,counter_abuse_token TEXT, fb_experiment_id INTEGER, social_media_post_type INTEGER, link_media_duration_seconds INTEGER, link_end_index INTEGER);
 CREATE TABLE priority_inbox(_id INTEGER PRIMARY KEY AUTOINCREMENT,priority_score DOUBLE NOT NULL,version INTEGER NOT NULL,chat_row_id INTEGER NOT NULL,is_priority BOOLEAN,label_removed BOOLEAN,time_created INTEGER,deep_conversion_rate BOOLEAN);
-CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT, metrics_metadata_json TEXT, bot_deep_link_token TEXT, ai_media_collection_metadata_json TEXT, signature_validation_status INTEGER, tool_calls_blob BLOB, bot_history_share_json TEXT, bot_client_public_key TEXT, message_origin_json TEXT, hatch_metadata BLOB, quoted_title_override TEXT, quoted_body_override TEXT, interjection_target_prompt_id TEXT);
+CREATE TABLE bot_message_info(message_row_id INTEGER PRIMARY KEY,target_id TEXT,message_state INTEGER DEFAULT 0,invoker_jid_row_id INTEGER, model_type INTEGER, message_disclaimer TEXT, keyword_json TEXT, promotion_message TEXT, imagine_json TEXT, age_collection INTEGER, bot_response_id TEXT, bot_jid_row_id INTEGER, in_app_thread_survey TEXT, verification_metadata BLOB, response_viewed INTEGER, bot_group_json TEXT, metrics_metadata_json TEXT, bot_deep_link_token TEXT, ai_media_collection_metadata_json TEXT, signature_validation_status INTEGER, tool_calls_blob BLOB, bot_history_share_json TEXT, bot_client_public_key TEXT, message_origin_json TEXT, hatch_metadata BLOB, quoted_title_override TEXT, quoted_body_override TEXT, interjection_target_prompt_id TEXT, imagine_preset_session_id TEXT);
 CREATE TABLE quick_reply_attachments(_id INTEGER PRIMARY KEY AUTOINCREMENT,quick_reply_id TEXT NOT NULL,uri TEXT NOT NULL,caption TEXT,media_type INTEGER);
 CREATE TABLE message_details(message_row_id INTEGER PRIMARY KEY,author_device_jid INTEGER);
 CREATE TABLE message_quoted_payment_invite(message_row_id INTEGER PRIMARY KEY,service INTEGER,expiration_timestamp INTEGER, incentive_eligible INTEGER, referral_id TEXT, invite_type INTEGER);
@@ -155,7 +155,7 @@ CREATE TABLE quick_reply_keywords(_id INTEGER PRIMARY KEY AUTOINCREMENT,quick_re
 CREATE TABLE message_system_group_with_parent(message_row_id INTEGER PRIMARY KEY,linked_parent_group_name TEXT);
 CREATE TABLE message_quoted_call_log(message_row_id INTEGER PRIMARY KEY,video_call BOOLEAN,call_result INTEGER);
 CREATE TABLE message_payment_transaction_reminder(message_row_id INTEGER PRIMARY KEY,web_stub TEXT,amount TEXT,transfer_date TEXT,payment_sender_name TEXT,expiration INTEGER,remote_message_key TEXT);
-CREATE TABLE newsletter_message(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER NOT NULL,server_message_id INTEGER NOT NULL,comments_count INTEGER NOT NULL DEFAULT 0,reaction_from_me TEXT,extra_newsletter_tables INTEGER NOT NULL DEFAULT 0,extra_table_last_update_ts INTEGER,reactions_from_me_ts INTEGER,view_count INTEGER, is_autodelete_eligible INTEGER, is_wamo_sub INTEGER, forwards_count INTEGER, admin_profile_id INTEGER, admin_profile_name TEXT, admin_profile_picture_id INTEGER, admin_profile_picture_url TEXT, is_paid_partnership INTEGER);
+CREATE TABLE newsletter_message(message_row_id INTEGER PRIMARY KEY,chat_row_id INTEGER NOT NULL,server_message_id INTEGER NOT NULL,comments_count INTEGER NOT NULL DEFAULT 0,reaction_from_me TEXT,extra_newsletter_tables INTEGER NOT NULL DEFAULT 0,extra_table_last_update_ts INTEGER,reactions_from_me_ts INTEGER,view_count INTEGER, is_autodelete_eligible INTEGER, is_wamo_sub INTEGER, forwards_count INTEGER, admin_profile_id INTEGER, admin_profile_name TEXT, admin_profile_picture_id INTEGER, admin_profile_picture_url TEXT, is_paid_partnership INTEGER, stars_count INTEGER);
 CREATE TABLE invoice_transactions(message_row_id INTEGER PRIMARY KEY,pay_transaction_id INTEGER);
 CREATE TABLE message_edit_info(message_row_id INTEGER PRIMARY KEY,original_key_id TEXT NOT NULL,edited_timestamp INTEGER NOT NULL,sender_timestamp INTEGER NOT NULL, display_type INTEGER);
 CREATE TABLE status_message_info(message_row_id INTEGER PRIMARY KEY,status_distribution_mode INTEGER NOT NULL, is_mentioned INTEGER, status_mentions TEXT, cannot_receive_reactions INTEGER, cannot_be_ranked INTEGER, has_embedded_music INTEGER, status_mention_source TEXT, status_attribution_type INTEGER, is_group_status INTEGER, can_be_reshared INTEGER, ranking_version INTEGER, external_media_duration_seconds INTEGER, original_status_message_row_id INTEGER, original_poster_notification_type INTEGER, status_source_type INTEGER, selected_audience_list TEXT, override_notification_recipient_jid TEXT, can_receive_multi_reactions INTEGER, audience_type INTEGER, status_poster_contact_type INTEGER, status_audience_custom_list_name TEXT, status_audience_custom_list_emoji TEXT, poster_status_id TEXT);
@@ -2817,10 +2817,10 @@ CREATE TRIGGER message_bd_for_status_attribution_trigger BEFORE DELETE ON messag
 CREATE INDEX status_attribution_status_row_id_index
             ON status_attribution (status_row_id);
 CREATE TABLE message_system_privacy(message_row_id INTEGER PRIMARY KEY,is_transition INTEGER,message_privacy_type INTEGER);
-CREATE TABLE message_add_on_question_response(message_add_on_row_id INTEGER PRIMARY KEY,response TEXT);
+CREATE TABLE message_add_on_question_response(message_add_on_row_id INTEGER PRIMARY KEY,response TEXT, reaction_code TEXT);
 CREATE TRIGGER message_add_on_bd_for_message_add_on_question_response_trigger BEFORE DELETE ON message_add_on BEGIN DELETE FROM message_add_on_question_response WHERE message_add_on_row_id=old._id; END;
 CREATE TRIGGER message_system_bd_for_message_system_privacy_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_privacy WHERE message_row_id=old.message_row_id; END;
-CREATE TABLE question_reply_quoted_message(message_row_id INTEGER PRIMARY KEY,question_text TEXT,response_text TEXT,server_question_id INTEGER, question_message_type INTEGER);
+CREATE TABLE question_reply_quoted_message(message_row_id INTEGER PRIMARY KEY,question_text TEXT,response_text TEXT,server_question_id INTEGER, question_message_type INTEGER, server_response_id TEXT);
 CREATE TRIGGER message_bd_for_question_reply_quoted_message_trigger BEFORE DELETE ON message BEGIN DELETE FROM question_reply_quoted_message WHERE message_row_id=old._id; END;
 CREATE TABLE integrity_chat_info(chat_row_id INTEGER PRIMARY KEY,is_reach_out INTEGER, is_eligible_for_link_friction_banner INTEGER);
 CREATE TRIGGER chat_bd_for_integrity_chat_info_trigger
@@ -3710,7 +3710,7 @@ CREATE TRIGGER message_bd_for_newsletter_scheduled_message_trigger BEFORE DELETE
 CREATE INDEX message_appointment_appointment_id_index
             ON message_appointment (appointment_id);
 CREATE UNIQUE INDEX newsletter_scheduled_message_index ON newsletter_scheduled_message (chat_row_id, scheduled_server_id);
-CREATE TABLE ai_scheduled_task_info(_id INTEGER PRIMARY KEY,task_id TEXT NOT NULL,message_row_id INTEGER NOT NULL,message_timestamp INTEGER NOT NULL);
+CREATE TABLE ai_scheduled_task_info(_id INTEGER PRIMARY KEY,task_id TEXT NOT NULL,message_row_id INTEGER NOT NULL,message_timestamp INTEGER NOT NULL, source_message_row_id INTEGER);
 CREATE TRIGGER message_bd_for_ai_scheduled_task_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM ai_scheduled_task_info WHERE message_row_id=old._id; END;
 CREATE UNIQUE INDEX ai_scheduled_task_info_message_row_id_task_id_index
           ON ai_scheduled_task_info (message_row_id, task_id);
@@ -3921,6 +3921,10 @@ CREATE TRIGGER message_bd_for_message_ftsv2_trigger BEFORE DELETE ON message BEG
         ; END;
 CREATE INDEX labeled_jid_jid_row_id_index
           ON labeled_jid (jid_row_id);
+CREATE TABLE optimised_delivery_info(message_row_id INTEGER PRIMARY KEY,msg_disclosed_token TEXT,msg_undisclosed_token TEXT,msg_timestamp_v2 INTEGER,token_timestamp LONG,business_jid_row_id INTEGER NOT NULL);
+CREATE TABLE lid_pn_learn_state(lid_row_id INTEGER PRIMARY KEY NOT NULL,learn_state INTEGER NOT NULL);
+CREATE TABLE message_instant(message_row_id INTEGER PRIMARY KEY,first_open_timestamp INTEGER NOT NULL,expire_timestamp INTEGER NOT NULL);
+CREATE TABLE message_system_poll(message_row_id INTEGER PRIMARY KEY,poll_message_row_id INTEGER NOT NULL);
 CREATE VIEW available_message_view AS
             SELECT
               
@@ -4334,4 +4338,73 @@ CREATE VIEW chat_view AS
                 chat.jid_row_id AS original_jid_row_id
             FROM chat AS chat
 /* chat_view(_id,hidden,subject,created_timestamp,last_message_row_id,display_message_row_id,last_read_message_row_id,last_read_receipt_sent_message_row_id,last_important_message_row_id,archived,sort_timestamp,mod_tag,gen,spam_detection,unseen_earliest_message_received_time,unseen_message_count,unseen_missed_calls_count,unseen_row_count,unseen_message_reaction_count,unseen_comment_message_count,last_message_reaction_row_id,last_seen_message_reaction_row_id,plaintext_disabled,vcard_ui_dismissed,change_number_notified_message_row_id,show_group_description,ephemeral_expiration,ephemeral_setting_timestamp,ephemeral_displayed_exemptions,ephemeral_disappearing_messages_initiator,unseen_important_message_count,group_type,growth_lock_level,growth_lock_expiration_ts,last_read_message_sort_id,display_message_sort_id,last_message_sort_id,last_read_receipt_sent_message_sort_id,has_new_community_admin_dialog_been_acknowledged,history_sync_progress,chat_lock,chat_origin,participation_status,chat_encryption_state,group_member_count,limited_sharing,limited_sharing_setting_timestamp,is_contact,ephemeral_after_read_duration,business_chat_state,chat_props,last_sticker_annotation_sort_id,jid_row_id,original_jid_row_id) */;
-CREATE TABLE optimised_delivery_info(message_row_id INTEGER PRIMARY KEY,msg_disclosed_token TEXT,msg_undisclosed_token TEXT,msg_timestamp_v2 INTEGER,token_timestamp LONG,business_jid_row_id INTEGER NOT NULL);
+CREATE TRIGGER chat_bd_for_integrity_group_input_feature_trigger BEFORE DELETE ON chat BEGIN DELETE FROM integrity_group_input_feature WHERE chat_row_id=old._id; END;
+CREATE TRIGGER lid_pn_learn_state_delete_for_backup_changes_trigger
+        AFTER DELETE ON lid_pn_learn_state
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'lid_pn_learn_state')
+          AND
+          (table_row_id = OLD.lid_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('DELETE', 'lid_pn_learn_state', OLD.lid_row_id)
+      ;
+        END;
+CREATE TRIGGER lid_pn_learn_state_insert_for_backup_changes_trigger
+        AFTER INSERT ON lid_pn_learn_state
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'lid_pn_learn_state')
+          AND
+          (table_row_id = NEW.lid_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('INSERT', 'lid_pn_learn_state', NEW.lid_row_id)
+      ;
+        END;
+CREATE TRIGGER lid_pn_learn_state_update_for_backup_changes_trigger
+        AFTER UPDATE ON lid_pn_learn_state
+        BEGIN
+          
+        DELETE FROM backup_changes
+        WHERE
+          (table_name = 'lid_pn_learn_state')
+          AND
+          (table_row_id = NEW.lid_row_id)
+          AND
+          (
+            (operation = 'INSERT')
+            OR
+            (operation = 'UPDATE')
+          )
+      ;
+          
+        INSERT INTO backup_changes (operation, table_name, table_row_id)
+        VALUES('UPDATE', 'lid_pn_learn_state', NEW.lid_row_id)
+      ;
+        END;
+CREATE TRIGGER message_bd_for_message_instant_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_instant WHERE message_row_id=old._id; END;
+CREATE TRIGGER message_bd_for_message_system_poll_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_system_poll WHERE poll_message_row_id=old._id; END;
+CREATE TRIGGER message_system_bd_for_message_system_poll_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_poll WHERE message_row_id=old.message_row_id; END;
+CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
+CREATE INDEX message_system_poll_index
+            ON message_system_poll (poll_message_row_id);
