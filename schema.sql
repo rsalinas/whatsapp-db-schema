@@ -4405,6 +4405,5 @@ CREATE TRIGGER lid_pn_learn_state_update_for_backup_changes_trigger
 CREATE TRIGGER message_bd_for_message_instant_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_instant WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_message_system_poll_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_system_poll WHERE poll_message_row_id=old._id; END;
 CREATE TRIGGER message_system_bd_for_message_system_poll_trigger BEFORE DELETE ON message_system BEGIN DELETE FROM message_system_poll WHERE message_row_id=old.message_row_id; END;
-CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
 CREATE INDEX message_system_poll_index
             ON message_system_poll (poll_message_row_id);
