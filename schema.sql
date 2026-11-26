@@ -3069,8 +3069,6 @@ CREATE INDEX ai_thread_info_title_index
           ON ai_thread_info(title COLLATE NOCASE);
 CREATE INDEX message_external_ad_content_source_id_index
             ON message_external_ad_content (source_id);
-CREATE UNIQUE INDEX status_privacy_custom_list_list_id_index
-      ON status_privacy_custom_list(list_id);
 CREATE TABLE group_history_share_reporting_info(_id INTEGER PRIMARY KEY AUTOINCREMENT,message_row_id INTEGER NOT NULL,stanza_id TEXT NOT NULL,reporting_token BLOB,reporting_token_version INTEGER,added_timestamp DATETIME NOT NULL,send_timestamp DATETIME,reporting_tag BLOB,is_send INTEGER, validation_policy TEXT);
 CREATE TRIGGER message_bd_for_group_history_share_reporting_info_trigger BEFORE DELETE ON message BEGIN DELETE FROM group_history_share_reporting_info WHERE message_row_id=old._id; END;
 CREATE INDEX ghs_reporting_info_added_timestamp_index 
@@ -4476,6 +4474,14 @@ CREATE TRIGGER call_spam_caller_state_update_for_backup_changes_trigger
         END;
 CREATE TRIGGER message_bd_for_message_payment_details_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_payment_details WHERE message_row_id=old._id; END;
 CREATE TRIGGER message_bd_for_message_vpc_request_trigger BEFORE DELETE ON message BEGIN DELETE FROM message_vpc_request WHERE message_row_id=old._id; END;
-CREATE INDEX message_conditional_reveal_key_id_key_jid_index ON message_conditional_reveal (key_id, key_jid);
 CREATE INDEX message_vpc_request_request_id_index
           ON message_vpc_request (request_id);
+CREATE INDEX private_ai_sync_mutation_chat_delete_thread_index
+          ON private_ai_sync_mutation_table (key_remote_jid_row_id, thread_key)
+          WHERE operation = 2;
+CREATE INDEX private_ai_sync_mutation_removal_index
+          ON private_ai_sync_mutation_table (operation)
+          WHERE operation IN (1, 2);
+CREATE INDEX private_ai_sync_mutation_requeue_marker_index
+          ON private_ai_sync_mutation_table (operation)
+          WHERE operation = 3;
